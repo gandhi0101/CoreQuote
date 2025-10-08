@@ -1,0 +1,5 @@
+Django>=5.1
+gunicorn
+psycopg[binary]>=3.2
+django-environ
+whitenoise
