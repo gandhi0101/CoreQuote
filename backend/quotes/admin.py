@@ -3,7 +3,7 @@ from .models import Quote
 
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
-    list_display = ("id", "client", "status", "total", "created_at", "deleted")
+    list_display = ("id", "client", "status", "total", "created_at")
     list_filter = ("status",)
     date_hierarchy = "created_at"
 
