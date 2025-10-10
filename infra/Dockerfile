@@ -5,29 +5,22 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1
 
 WORKDIR /app
-
-# deps de sistema (psycopg2 / libpq)
+# deps de sistema para psycopg
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential libpq-dev && rm -rf /var/lib/apt/lists/*
 
 # instala requirements primero (cache de capas)
-# OJO: si tu requirements.txt está en la raíz, copia desde ahí;
-# si está en backend/, déjalo como estaba:
 COPY backend/requirements.txt /app/requirements.txt
 RUN pip install -r /app/requirements.txt
 
-# copia el código del backend (manage.py, config/, apps, start.sh, etc.)
+# copia el código
 COPY backend/ /app/
-
-# (quitar esto: ahora lo hace start.sh)
-# RUN python manage.py collectstatic --noinput || true
-
-# permisos al script
-RUN chmod +x /app/start.sh
-
-# puerto de Railway
-ENV PORT=8000
 EXPOSE 8000
+RUN python manage.py collectstatic --noinput || true
 
-# usa el script combinado
-CMD ["bash", "-lc", "/app/start.sh"]
+
+# por defecto: dev server (claro y directo)
+#CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# para producción, usar gunicorn (más robusto)
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "90"]
+
