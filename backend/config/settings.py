@@ -19,13 +19,6 @@ DEBUG = env.bool("DEBUG", default=True)
 ALLOWED_HOSTS = [h.strip() for h in env("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",") if h.strip()]
 CSRF_TRUSTED_ORIGINS = [u.strip() for u in env("CSRF_TRUSTED_ORIGINS", default="http://localhost,http://127.0.0.1").split(",") if u.strip()]
 
-# Railway expone el dominio público en una variable dedicada que agregamos
-# dinámicamente para evitar configurarlo manualmente.
-railway_public_domain = env("RAILWAY_PUBLIC_DOMAIN", default=None)
-if railway_public_domain:
-    ALLOWED_HOSTS.append(railway_public_domain)
-    CSRF_TRUSTED_ORIGINS.append(f"https://{railway_public_domain}")
-
 
 # --- Apps mínimas (agrega las tuyas aquí)
 INSTALLED_APPS = [
@@ -76,24 +69,17 @@ TEMPLATES = [
     },
 ]
 
-# --- Base de datos (Postgres por env / Railway DATABASE_URL)
-default_db = {
-    "ENGINE": "django.db.backends.postgresql",
-    "NAME": env("POSTGRES_DB", default="corequote"),
-    "USER": env("POSTGRES_USER", default="corequote"),
-    "PASSWORD": env("POSTGRES_PASSWORD", default=""),
-    "HOST": env("POSTGRES_HOST", default="db"),
-    "PORT": env("POSTGRES_PORT", default="5432"),
+# --- Base de datos (Postgres por env)
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env("POSTGRES_DB", default="corequote"),
+        "USER": env("POSTGRES_USER", default="corequote"),
+        "PASSWORD": env("POSTGRES_PASSWORD", default=""),
+        "HOST": env("POSTGRES_HOST", default="db"),
+        "PORT": env("POSTGRES_PORT", default="5432"),
+    }
 }
-
-database_url = env("DATABASE_URL", default=None)
-if database_url:
-    DATABASES = {"default": env.db("DATABASE_URL")}
-else:
-    DATABASES = {"default": default_db}
-
-# Railway recomienda mantener conexiones abiertas; se vuelve configurable.
-DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
 
 # --- I18N / TZ
 LANGUAGE_CODE = "es-mx"
