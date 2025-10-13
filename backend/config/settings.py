@@ -13,8 +13,9 @@ env = environ.Env(
 
 
 # --- Core
-SECRET_KEY = env("SECRET_KEY", default="dev-not-secure")
-DEBUG = env.bool("DEBUG", default=True)
+SECRET_KEY = os.getenv("SECRET_KEY", default="dev-not-secure")
+DEBUG = os.getenv("DEBUG", "True") == "True"
+
 
 ALLOWED_HOSTS = [h.strip() for h in env("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",") if h.strip()]
 CSRF_TRUSTED_ORIGINS = [u.strip() for u in env("CSRF_TRUSTED_ORIGINS", default="http://localhost,http://127.0.0.1").split(",") if u.strip()]
@@ -73,11 +74,11 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("POSTGRES_DB", default="corequote"),
-        "USER": env("POSTGRES_USER", default="corequote"),
-        "PASSWORD": env("POSTGRES_PASSWORD", default=""),
-        "HOST": env("POSTGRES_HOST", default="db"),
-        "PORT": env("POSTGRES_PORT", default="5432"),
+        "NAME": os.getenv("POSTGRES_DB"),
+        "USER": os.getenv("POSTGRES_USER"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        "HOST": os.getenv("POSTGRES_HOST"),
+        "PORT": os.getenv("POSTGRES_PORT"),
     }
 }
 
