@@ -215,6 +215,26 @@
       .vertical-sidebar:not(:has(:checked)) .sidebar__link {
         justify-content: center;
         padding-inline: 0;
+        gap: 0;
+      }
+
+      .vertical-sidebar:not(:has(:checked)) .sidebar__link .text {
+        inline-size: 0;
+        block-size: 0;
+        overflow: hidden;
+      }
+
+      .vertical-sidebar:not(:has(:checked)) .sidebar__toggle-container {
+        justify-content: center;
+        padding-inline: 0;
+      }
+
+      .vertical-sidebar:has(:checked) .sidebar__toggle-container {
+        justify-content: flex-end;
+      }
+
+      .vertical-sidebar:not(:has(:checked)) .nav__toggle {
+        margin-inline: auto;
       }
 
       .vertical-sidebar input[type="checkbox"] {
