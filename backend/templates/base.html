@@ -725,6 +725,7 @@
       CoreQuote © {% now 'Y' %}. Simplifica la gestión de tus productos y cotizaciones.
     </footer>
     <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
     <script>
       (function () {
         const toastContainer = document.getElementById("toast-container");
@@ -937,6 +938,51 @@
           return template.content;
         };
 
+        const showConfirmation = (element, message) => {
+          const title = element.dataset.confirmTitle || "¿Estás seguro?";
+          const icon = element.dataset.confirmIcon || "warning";
+          const confirmButtonText =
+            element.dataset.confirmButtonText || "Sí, continuar";
+          const cancelButtonText =
+            element.dataset.cancelButtonText || "Cancelar";
+          const confirmButtonColor =
+            element.dataset.confirmButtonColor || "#d33";
+          const cancelButtonColor =
+            element.dataset.cancelButtonColor || "#64748b";
+
+          if (window.Swal && typeof window.Swal.fire === "function") {
+            return window.Swal.fire({
+              title,
+              text: message,
+              icon,
+              showCancelButton: true,
+              focusCancel: true,
+              confirmButtonText,
+              cancelButtonText,
+              confirmButtonColor,
+              cancelButtonColor,
+            });
+          }
+
+          const confirmed = window.confirm(message);
+          return Promise.resolve({
+            isConfirmed: confirmed,
+            isDismissed: !confirmed,
+          });
+        };
+
+        const requestFromTrigger = (trigger) => {
+          const deleteUrl = trigger.getAttribute("hx-delete");
+          const getUrl = trigger.getAttribute("hx-get");
+          const method = deleteUrl ? "DELETE" : "GET";
+          const url = deleteUrl || getUrl;
+          if (!url) return;
+          const swap = trigger.getAttribute("hx-swap") || "innerHTML";
+          const target = resolveTarget(trigger);
+
+          void sendRequest(trigger, { method, url, target, swap });
+        };
+
         let activeModalTrigger = null;
 
         const findModal = (element) => {
@@ -988,20 +1034,18 @@
           }
 
           const confirmMessage = trigger.getAttribute("hx-confirm");
-          if (confirmMessage && !window.confirm(confirmMessage)) {
+          if (confirmMessage) {
             event.preventDefault();
+            void showConfirmation(trigger, confirmMessage).then((result) => {
+              if (result && result.isConfirmed) {
+                requestFromTrigger(trigger);
+              }
+            });
             return;
           }
 
-          const deleteUrl = trigger.getAttribute("hx-delete");
-          const getUrl = trigger.getAttribute("hx-get");
-          const method = deleteUrl ? "DELETE" : "GET";
-          const url = deleteUrl || getUrl;
-          const swap = trigger.getAttribute("hx-swap") || "innerHTML";
-          const target = resolveTarget(trigger);
-
           event.preventDefault();
-          void sendRequest(trigger, { method, url, target, swap });
+          requestFromTrigger(trigger);
         });
 
         document.body.addEventListener("submit", (event) => {
@@ -1011,31 +1055,40 @@
           const hxPost = form.getAttribute("hx-post");
           if (!hxPost) return;
 
-          event.preventDefault();
+          const submitAjax = () => {
+            if (!form.checkValidity()) {
+              form.reportValidity();
+              return;
+            }
 
-          if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-          }
+            const methodAttr = form.getAttribute("method") || "POST";
+            const method = methodAttr.toUpperCase();
+            const swap = form.getAttribute("hx-swap") || "innerHTML";
+            const target = resolveTarget(form);
+            const formData = new FormData(form);
+
+            void sendRequest(form, {
+              method,
+              url: hxPost || form.action,
+              body: formData,
+              target,
+              swap,
+            });
+          };
 
           const confirmMessage = form.getAttribute("hx-confirm");
-          if (confirmMessage && !window.confirm(confirmMessage)) {
+          if (confirmMessage) {
+            event.preventDefault();
+            void showConfirmation(form, confirmMessage).then((result) => {
+              if (result && result.isConfirmed) {
+                submitAjax();
+              }
+            });
             return;
           }
 
-          const methodAttr = form.getAttribute("method") || "POST";
-          const method = methodAttr.toUpperCase();
-          const swap = form.getAttribute("hx-swap") || "innerHTML";
-          const target = resolveTarget(form);
-          const formData = new FormData(form);
-
-          void sendRequest(form, {
-            method,
-            url: hxPost || form.action,
-            body: formData,
-            target,
-            swap,
-          });
+          event.preventDefault();
+          submitAjax();
         });
 
         document.body.addEventListener("click", (event) => {
