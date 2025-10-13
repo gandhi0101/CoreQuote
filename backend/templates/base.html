@@ -725,10 +725,203 @@
       CoreQuote © {% now 'Y' %}. Simplifica la gestión de tus productos y cotizaciones.
     </footer>
     <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
-    <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ME3gl2+wS1U1Iw2skTKU9sWYGRGXX6Qg+kUiWnFTt84OJ3swa7wSe3z1L2fGr2vX" crossorigin="anonymous"></script>
     <script>
       (function () {
         const toastContainer = document.getElementById("toast-container");
+
+        const getCookie = (name) => {
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) {
+            return parts.pop().split(";").shift();
+          }
+          return null;
+        };
+
+        const resolveTarget = (element, explicitSelector = null) => {
+          const selector = explicitSelector || element.getAttribute("hx-target");
+          if (!selector || selector === "this") {
+            return element;
+          }
+
+          const normalise = (value) => value.replace(/^(closest|find)\s+/, "").trim();
+
+          if (selector.startsWith("closest ")) {
+            const query = normalise(selector);
+            return element.closest(query) || element;
+          }
+
+          if (selector.startsWith("find ")) {
+            const query = normalise(selector);
+            return element.querySelector(query) || element;
+          }
+
+          try {
+            return document.querySelector(selector) || element;
+          } catch (error) {
+            console.error("Selector inválido para hx-target", selector, error);
+            return element;
+          }
+        };
+
+        const swapContent = (target, html, strategy = "innerHTML") => {
+          if (!target) return;
+          const cleanHtml = typeof html === "string" ? html : "";
+
+          switch (strategy) {
+            case "outerHTML": {
+              if (!cleanHtml.trim()) {
+                target.remove();
+                return;
+              }
+              const template = document.createElement("template");
+              template.innerHTML = cleanHtml.trim();
+              const replacement = template.content.firstElementChild;
+              if (replacement) {
+                target.replaceWith(replacement);
+              } else {
+                target.outerHTML = cleanHtml;
+              }
+              return;
+            }
+            case "append":
+            case "beforeend":
+              target.insertAdjacentHTML("beforeend", cleanHtml);
+              return;
+            case "prepend":
+            case "afterbegin":
+              target.insertAdjacentHTML("afterbegin", cleanHtml);
+              return;
+            case "beforebegin":
+            case "afterend":
+              target.insertAdjacentHTML(strategy, cleanHtml);
+              return;
+            default:
+              target.innerHTML = cleanHtml;
+          }
+        };
+
+        const dispatchTriggers = (response) => {
+          const triggerHeader = response.headers.get("HX-Trigger");
+          if (!triggerHeader) return;
+
+          let payload;
+          try {
+            payload = JSON.parse(triggerHeader);
+          } catch (error) {
+            payload = triggerHeader;
+          }
+
+          if (typeof payload === "string") {
+            document.body.dispatchEvent(
+              new CustomEvent(payload, { bubbles: true, detail: { value: null } })
+            );
+            return;
+          }
+
+          Object.entries(payload).forEach(([name, value]) => {
+            const detail = typeof value === "string" ? { message: value } : value;
+            document.body.dispatchEvent(
+              new CustomEvent(name, { bubbles: true, detail })
+            );
+          });
+        };
+
+        const showToast = ({ message, type = "info" }) => {
+          if (!message) return;
+          const toast = document.createElement("div");
+          toast.className = `toast ${type}`;
+          toast.innerHTML = `<button type="button" aria-label="Cerrar">×</button><div>${message}</div>`;
+          const close = () => toast.remove();
+          toast.querySelector("button").addEventListener("click", close);
+          toastContainer.appendChild(toast);
+          setTimeout(close, 4500);
+        };
+
+        const sendRequest = async (trigger, { method, url, body = null, target, swap }) => {
+          if (!url) return;
+
+          const headers = {
+            "HX-Request": "true",
+            "X-Requested-With": "XMLHttpRequest",
+          };
+
+          if (method !== "GET" && method !== "HEAD") {
+            const token = getCookie("csrftoken");
+            if (token) {
+              headers["X-CSRFToken"] = token;
+            }
+          }
+
+          trigger.dispatchEvent(
+            new CustomEvent("htmx:beforeRequest", {
+              bubbles: true,
+              detail: { method, url, target },
+            })
+          );
+
+          let response;
+          try {
+            response = await fetch(url, {
+              method,
+              headers,
+              body,
+            });
+          } catch (error) {
+            console.error("Petición fallida", error);
+            showToast({
+              message: "No se pudo completar la acción. Revisa tu conexión.",
+              type: "error",
+            });
+            trigger.dispatchEvent(
+              new CustomEvent("htmx:afterRequest", {
+                bubbles: true,
+                detail: { method, url, target, error },
+              })
+            );
+            return;
+          }
+
+          const redirect = response.headers.get("HX-Redirect");
+          if (redirect) {
+            window.location.href = redirect;
+            return;
+          }
+
+          const retarget = response.headers.get("HX-Retarget");
+          if (retarget) {
+            target = resolveTarget(trigger, retarget);
+          }
+
+          const reswap = response.headers.get("HX-Reswap");
+          if (reswap) {
+            swap = reswap;
+          }
+
+          let html = "";
+          if (response.status !== 204) {
+            html = await response.text();
+          }
+
+          if (target) {
+            swapContent(target, html, swap);
+            target.dispatchEvent(
+              new CustomEvent("htmx:afterSwap", {
+                bubbles: true,
+                detail: { method, url, source: trigger },
+              })
+            );
+          }
+
+          dispatchTriggers(response);
+
+          trigger.dispatchEvent(
+            new CustomEvent("htmx:afterRequest", {
+              bubbles: true,
+              detail: { method, url, target, response },
+            })
+          );
+        };
 
         const getDetail = (event) => {
           if (!event.detail) return null;
@@ -742,17 +935,6 @@
           const template = document.createElement("template");
           template.innerHTML = html.trim();
           return template.content;
-        };
-
-        const showToast = ({ message, type = "info" }) => {
-          if (!message) return;
-          const toast = document.createElement("div");
-          toast.className = `toast ${type}`;
-          toast.innerHTML = `<button type="button" aria-label="Cerrar">×</button><div>${message}</div>`;
-          const close = () => toast.remove();
-          toast.querySelector("button").addEventListener("click", close);
-          toastContainer.appendChild(toast);
-          setTimeout(close, 4500);
         };
 
         let activeModalTrigger = null;
@@ -796,6 +978,65 @@
           }
           activeModalTrigger = null;
         };
+
+        document.body.addEventListener("click", (event) => {
+          const trigger = event.target.closest?.("[hx-get], [hx-delete]");
+          if (!trigger) return;
+          if (trigger.hasAttribute("disabled") || trigger.dataset.disabled !== undefined) {
+            event.preventDefault();
+            return;
+          }
+
+          const confirmMessage = trigger.getAttribute("hx-confirm");
+          if (confirmMessage && !window.confirm(confirmMessage)) {
+            event.preventDefault();
+            return;
+          }
+
+          const deleteUrl = trigger.getAttribute("hx-delete");
+          const getUrl = trigger.getAttribute("hx-get");
+          const method = deleteUrl ? "DELETE" : "GET";
+          const url = deleteUrl || getUrl;
+          const swap = trigger.getAttribute("hx-swap") || "innerHTML";
+          const target = resolveTarget(trigger);
+
+          event.preventDefault();
+          void sendRequest(trigger, { method, url, target, swap });
+        });
+
+        document.body.addEventListener("submit", (event) => {
+          const form = event.target;
+          if (!(form instanceof HTMLFormElement)) return;
+
+          const hxPost = form.getAttribute("hx-post");
+          if (!hxPost) return;
+
+          event.preventDefault();
+
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+
+          const confirmMessage = form.getAttribute("hx-confirm");
+          if (confirmMessage && !window.confirm(confirmMessage)) {
+            return;
+          }
+
+          const methodAttr = form.getAttribute("method") || "POST";
+          const method = methodAttr.toUpperCase();
+          const swap = form.getAttribute("hx-swap") || "innerHTML";
+          const target = resolveTarget(form);
+          const formData = new FormData(form);
+
+          void sendRequest(form, {
+            method,
+            url: hxPost || form.action,
+            body: formData,
+            target,
+            swap,
+          });
+        });
 
         document.body.addEventListener("click", (event) => {
           const dismiss = event.target.closest?.("[data-modal-dismiss]");
@@ -897,22 +1138,6 @@
           const form = document.querySelector(detail.selector);
           if (form && typeof form.reset === "function") {
             form.reset();
-          }
-        });
-
-        const getCookie = (name) => {
-          const value = `; ${document.cookie}`;
-          const parts = value.split(`; ${name}=`);
-          if (parts.length === 2) {
-            return parts.pop().split(";").shift();
-          }
-          return null;
-        };
-
-        document.addEventListener("htmx:configRequest", (event) => {
-          const token = getCookie("csrftoken");
-          if (token) {
-            event.detail.headers["X-CSRFToken"] = token;
           }
         });
       })();
