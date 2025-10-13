@@ -60,7 +60,7 @@
 
       .nav-links {
         display: flex;
-        align-items: center;
+        
         gap: 1rem;
         list-style: none;
         margin: 0;
@@ -585,24 +585,7 @@
     <nav>
       <div class="nav-left">
         <a class="brand" href="{% url 'home' %}">CoreQuote</a>
-        {% if user.is_authenticated %}
-          {% with active_app=request.resolver_match.app_name %}
-            <ul class="nav-links">
-              <li>
-                <a href="{% url 'clients:list' %}" class="{% if active_app == 'clients' %}active{% endif %}">Clientes</a>
-              </li>
-              <li>
-                <a href="{% url 'inventory:list' %}" class="{% if active_app == 'inventory' %}active{% endif %}">Inventario</a>
-              </li>
-              <li>
-                <a href="{% url 'quotes:list' %}" class="{% if active_app == 'quotes' %}active{% endif %}">Cotizaciones</a>
-              </li>
-              <li>
-                <a href="{% url 'reports:list' %}" class="{% if active_app == 'reports' %}active{% endif %}">Reportes</a>
-              </li>
-            </ul>
-          {% endwith %}
-        {% endif %}
+        
       </div>
       <div class="nav-right">
         {% if user.is_authenticated %}
@@ -628,12 +611,24 @@
             <h2>Navegación</h2>
             <nav>
               <ul>
-                {% with active_app=request.resolver_match.app_name %}
-                  <li><a href="{% url 'clients:list' %}" class="{% if active_app == 'clients' %}active{% endif %}">Clientes</a></li>
-                  <li><a href="{% url 'inventory:list' %}" class="{% if active_app == 'inventory' %}active{% endif %}">Inventario</a></li>
-                  <li><a href="{% url 'quotes:list' %}" class="{% if active_app == 'quotes' %}active{% endif %}">Cotizaciones</a></li>
-                  <li><a href="{% url 'reports:list' %}" class="{% if active_app == 'reports' %}active{% endif %}">Reportes</a></li>
-                {% endwith %}
+                {% if user.is_authenticated %}
+                  {% with active_app=request.resolver_match.app_name %}
+                    <ul class="nav-links">
+                      <li>
+                        <a href="{% url 'clients:list' %}" class="{% if active_app == 'clients' %}active{% endif %}">Clientes</a>
+                      </li>
+                      <li>
+                        <a href="{% url 'inventory:list' %}" class="{% if active_app == 'inventory' %}active{% endif %}">Inventario</a>
+                      </li>
+                      <li>
+                        <a href="{% url 'quotes:list' %}" class="{% if active_app == 'quotes' %}active{% endif %}">Cotizaciones</a>
+                      </li>
+                      <li>
+                        <a href="{% url 'reports:list' %}" class="{% if active_app == 'reports' %}active{% endif %}">Reportes</a>
+                      </li>
+                    </ul>
+                  {% endwith %}
+                {% endif %}
               </ul>
             </nav>
           </div>
