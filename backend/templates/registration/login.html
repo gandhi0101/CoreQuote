@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar sesión | CoreQuote{% endblock %}
+
+{% block content %}
+  <section class="card" style="max-width: 480px;">
+    <h1>Bienvenido a CoreQuote</h1>
+    <p>Ingresa tus credenciales para acceder al panel de gestión.</p>
+    <form method="post" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div style="padding: 0.75rem 1rem; border-radius: 0.75rem; background: rgba(239, 68, 68, 0.12); color: #b91c1c;">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+      <label style="display: flex; flex-direction: column; gap: 0.35rem;">
+        <span style="font-weight: 600;">Usuario</span>
+        {{ form.username }}
+        {% if form.username.errors %}
+          <small style="color: #b91c1c;">{{ form.username.errors|striptags }}</small>
+        {% endif %}
+      </label>
+      <label style="display: flex; flex-direction: column; gap: 0.35rem;">
+        <span style="font-weight: 600;">Contraseña</span>
+        {{ form.password }}
+        {% if form.password.errors %}
+          <small style="color: #b91c1c;">{{ form.password.errors|striptags }}</small>
+        {% endif %}
+      </label>
+      <button type="submit" class="primary-action" style="justify-content: center;">
+        Iniciar sesión
+      </button>
+    </form>
+  </section>
+{% endblock %}
