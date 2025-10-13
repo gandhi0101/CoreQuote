@@ -1,0 +1,30 @@
+<tr id="quote-{{ quote.pk }}">
+  <td class="cell-strong">#{{ quote.pk }}</td>
+  <td>{{ quote.client }}</td>
+  <td>${{ quote.total|floatformat:2 }}</td>
+  <td><span class="status status-{{ quote.status }}">{{ quote.get_status_display }}</span></td>
+  <td>{{ quote.created_at|date:"d/m/Y H:i" }}</td>
+  <td class="row-actions">
+    <button
+      class="link"
+      hx-get="{% url 'quotes:edit' quote.pk %}"
+      hx-target="#quote-modal-body"
+      hx-swap="innerHTML"
+      data-modal-trigger="#quote-modal"
+    >Editar</button>
+    <button
+      class="link"
+      type="button"
+      data-disabled
+      title="La generación de PDF estará disponible próximamente"
+    >Generar PDF</button>
+    <button
+      class="link danger"
+      hx-delete="{% url 'quotes:delete' quote.pk %}"
+      hx-target="#quote-{{ quote.pk }}"
+      hx-swap="outerHTML"
+      hx-confirm="¿Eliminar esta cotización?"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+    >Eliminar</button>
+  </td>
+</tr>

@@ -1,0 +1,22 @@
+<tr id="item-{{ item.pk }}">
+  <td class="cell-strong">{{ item.sku }}</td>
+  <td>{{ item.name }}</td>
+  <td>{{ item.stock }}</td>
+  <td>${{ item.cost|floatformat:2 }}</td>
+  <td class="row-actions">
+    <button
+      class="link"
+      hx-get="{% url 'inventory:update' item.pk %}"
+      hx-target="#item-form-container"
+      hx-swap="innerHTML"
+    >Editar</button>
+    <button
+      class="link danger"
+      hx-delete="{% url 'inventory:delete' item.pk %}"
+      hx-target="#item-{{ item.pk }}"
+      hx-swap="outerHTML"
+      hx-confirm="¿Eliminar este producto?"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+    >Eliminar</button>
+  </td>
+</tr>

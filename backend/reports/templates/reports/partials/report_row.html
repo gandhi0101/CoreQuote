@@ -1,0 +1,21 @@
+<tr id="report-{{ report.pk }}">
+  <td class="cell-strong">{{ report.name }}</td>
+  <td>{% if report.description %}{{ report.description }}{% else %}<span class="muted">Sin descripción</span>{% endif %}</td>
+  <td>{{ report.created_at|date:"d/m/Y H:i" }}</td>
+  <td class="row-actions">
+    <button
+      class="link"
+      hx-get="{% url 'reports:update' report.pk %}"
+      hx-target="#report-form-container"
+      hx-swap="innerHTML"
+    >Editar</button>
+    <button
+      class="link danger"
+      hx-delete="{% url 'reports:delete' report.pk %}"
+      hx-target="#report-{{ report.pk }}"
+      hx-swap="outerHTML"
+      hx-confirm="¿Eliminar este reporte?"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+    >Eliminar</button>
+  </td>
+</tr>

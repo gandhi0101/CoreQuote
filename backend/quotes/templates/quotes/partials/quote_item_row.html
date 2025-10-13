@@ -1,0 +1,29 @@
+<tr data-item-row data-index="{{ index }}">
+  <td class="field">
+    <label class="sr-only" for="{{ form.item.id_for_label }}">{{ form.item.label }}</label>
+    {{ form.item }}
+    {% if form.item.errors %}
+      <p class="error">{{ form.item.errors|join:', ' }}</p>
+    {% endif %}
+  </td>
+  <td class="field narrow">
+    <label class="sr-only" for="{{ form.quantity.id_for_label }}">{{ form.quantity.label }}</label>
+    {{ form.quantity }}
+    {% if form.quantity.errors %}
+      <p class="error">{{ form.quantity.errors|join:', ' }}</p>
+    {% endif %}
+  </td>
+  <td class="field narrow">
+    <label class="sr-only" for="{{ form.unit_price.id_for_label }}">{{ form.unit_price.label }}</label>
+    {{ form.unit_price }}
+    {% if form.unit_price.errors %}
+      <p class="error">{{ form.unit_price.errors|join:', ' }}</p>
+    {% endif %}
+  </td>
+  <td class="field remove">
+    <button type="button" class="link danger" data-remove-item>Quitar</button>
+  </td>
+</tr>
+{% if form.non_field_errors %}
+  <tr class="full-error"><td colspan="4">{{ form.non_field_errors|join:', ' }}</td></tr>
+{% endif %}

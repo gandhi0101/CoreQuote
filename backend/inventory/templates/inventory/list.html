@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Inventario · CoreQuote{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div>
+    <h1>Inventario</h1>
+    <p class="muted">Administra los productos disponibles para tus cotizaciones.</p>
+  </div>
+</section>
+<div class="two-column">
+  <section class="card">
+    <div id="item-form-container">
+      {% include "inventory/partials/item_form.html" with form=form %}
+    </div>
+  </section>
+  <section class="card table-card">
+    <div class="table-header">
+      <h2>Catálogo</h2>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Nombre</th>
+            <th>Stock</th>
+            <th>Costo</th>
+            <th class="actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="inventory-table-body">
+          {% for item in items %}
+            {% include "inventory/partials/item_row.html" with item=item %}
+          {% empty %}
+            <tr>
+              <td colspan="5" class="empty">Sin productos registrados.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}CoreQuote{% endblock %}</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --brand: #0f5ef0;
+        --brand-dark: #0a44ad;
+        --surface: #ffffff;
+        --surface-alt: #f4f6fb;
+        --text: #1f2933;
+        --muted: #64748b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--surface-alt);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      nav {
+        background: var(--surface);
+        border-bottom: 1px solid rgba(15, 94, 240, 0.15);
+        padding: 0.75rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .brand {
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: var(--brand);
+      }
+
+      .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .nav-links a {
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.95rem;
+        color: var(--muted);
+        transition: all 0.2s ease;
+      }
+
+      .nav-links a.active {
+        background: rgba(15, 94, 240, 0.12);
+        color: var(--brand);
+        font-weight: 600;
+      }
+
+      .nav-links a:hover,
+      .nav-links a:focus {
+        background: rgba(15, 94, 240, 0.08);
+        color: var(--brand);
+        outline: none;
+      }
+
+      .login-btn {
+        padding: 0.4rem 1.1rem;
+        border-radius: 999px;
+        border: 1px solid var(--brand);
+        color: var(--brand);
+        font-weight: 600;
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+
+      .login-btn:hover,
+      .login-btn:focus {
+        background: var(--brand);
+        color: #fff;
+      }
+
+      details.user-menu {
+        position: relative;
+      }
+
+      details.user-menu > summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 0.4rem 1rem;
+        border-radius: 999px;
+        background: rgba(15, 94, 240, 0.08);
+        font-weight: 600;
+      }
+
+      details.user-menu[open] > summary,
+      details.user-menu > summary:hover,
+      details.user-menu > summary:focus {
+        background: var(--brand);
+        color: #fff;
+        outline: none;
+      }
+
+      details.user-menu > summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .user-menu__dropdown {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        right: 0;
+        background: var(--surface);
+        border-radius: 0.75rem;
+        box-shadow: 0 12px 32px rgba(15, 94, 240, 0.15);
+        padding: 0.5rem;
+        min-width: 180px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .user-menu__dropdown a,
+      .user-menu__dropdown button {
+        padding: 0.45rem 0.75rem;
+        border-radius: 0.6rem;
+        border: none;
+        background: transparent;
+        text-align: left;
+        font: inherit;
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      .user-menu__dropdown a:hover,
+      .user-menu__dropdown a:focus,
+      .user-menu__dropdown button:hover,
+      .user-menu__dropdown button:focus {
+        background: rgba(15, 94, 240, 0.08);
+        color: var(--brand);
+        outline: none;
+      }
+
+      input[type="text"],
+      input[type="password"],
+      input[type="email"],
+      select {
+        padding: 0.65rem 0.85rem;
+        border-radius: 0.65rem;
+        border: 1px solid rgba(15, 94, 240, 0.25);
+        font: inherit;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input[type="text"]:focus,
+      input[type="password"]:focus,
+      input[type="email"]:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--brand);
+        box-shadow: 0 0 0 3px rgba(15, 94, 240, 0.15);
+      }
+
+      .layout {
+        flex: 1;
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+      }
+
+      aside.sidebar {
+        width: 250px;
+        background: var(--surface);
+        border-right: 1px solid rgba(15, 94, 240, 0.12);
+        padding: 1.5rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .sidebar h2 {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .sidebar nav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .sidebar nav a {
+        padding: 0.55rem 0.75rem;
+        border-radius: 0.65rem;
+        color: var(--muted);
+        transition: all 0.2s ease;
+      }
+
+      .sidebar nav a:hover,
+      .sidebar nav a:focus {
+        background: rgba(15, 94, 240, 0.08);
+        color: var(--brand);
+        outline: none;
+      }
+
+      main {
+        flex: 1;
+        padding: 2.5rem clamp(1rem, 4vw, 3rem);
+      }
+
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+      }
+
+      .page-header h1 {
+        margin: 0;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .two-column {
+        display: grid;
+        gap: 2rem;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      }
+
+      .card {
+        background: var(--surface);
+        border-radius: 1.25rem;
+        padding: clamp(1.5rem, 4vw, 3rem);
+        box-shadow: 0 30px 60px rgba(15, 94, 240, 0.08);
+        max-width: 780px;
+        margin: 0 auto;
+      }
+
+      .table-card h2 {
+        margin-top: 0;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+      }
+
+      .table-wrapper.mini {
+        margin-bottom: 1rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      table thead th {
+        text-align: left;
+        font-size: 0.85rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding-bottom: 0.75rem;
+      }
+
+      table tbody td {
+        padding: 0.75rem 0;
+        border-top: 1px solid rgba(15, 94, 240, 0.1);
+      }
+
+      table tbody tr:first-child td {
+        border-top: none;
+      }
+
+      table tbody tr:hover td {
+        background: rgba(15, 94, 240, 0.05);
+      }
+
+      td.cell-strong {
+        font-weight: 600;
+      }
+
+      td.actions,
+      th.actions {
+        text-align: right;
+      }
+
+      td.empty {
+        text-align: center;
+        padding: 2rem 0;
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      .row-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.35rem;
+        flex-wrap: wrap;
+      }
+
+      .stacked-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .form-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .form-panel__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .form-panel__header h2 {
+        margin: 0;
+      }
+
+      .form-panel__header .link {
+        font-size: 0.9rem;
+      }
+
+      .primary,
+      .secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 0.75rem;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+      }
+
+      .primary {
+        background: var(--brand);
+        color: #fff;
+      }
+
+      .primary:hover,
+      .primary:focus {
+        background: var(--brand-dark);
+        color: #fff;
+      }
+
+      .secondary {
+        background: rgba(15, 94, 240, 0.08);
+        color: var(--brand);
+      }
+
+      .secondary:hover,
+      .secondary:focus {
+        background: rgba(15, 94, 240, 0.16);
+        color: var(--brand);
+      }
+
+      .link {
+        background: none;
+        border: none;
+        color: var(--brand);
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.5rem;
+      }
+
+      .link:hover,
+      .link:focus {
+        background: rgba(15, 94, 240, 0.12);
+        outline: none;
+      }
+
+      .link.danger {
+        color: #d14343;
+      }
+
+      .link.danger:hover,
+      .link.danger:focus {
+        background: rgba(209, 67, 67, 0.12);
+      }
+
+      .error {
+        color: #d14343;
+        font-size: 0.85rem;
+        margin: 0;
+      }
+
+      .status {
+        padding: 0.25rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        background: rgba(15, 94, 240, 0.1);
+        color: var(--brand);
+      }
+
+      .status.status-won {
+        background: rgba(34, 197, 94, 0.15);
+        color: #15803d;
+      }
+
+      .status.status-lost {
+        background: rgba(244, 63, 94, 0.15);
+        color: #be123c;
+      }
+
+      .status.status-sent {
+        background: rgba(245, 158, 11, 0.2);
+        color: #b45309;
+      }
+
+      .quote-items h3 {
+        margin-bottom: 0.75rem;
+      }
+
+      .items-table th,
+      .items-table td {
+        padding-right: 0.75rem;
+      }
+
+      .items-table td.narrow,
+      .items-table th.narrow {
+        width: 120px;
+      }
+
+      .items-table td.remove {
+        width: 90px;
+        text-align: right;
+      }
+
+      [data-disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+
+      #toast-container {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        z-index: 20;
+        pointer-events: none;
+      }
+
+      .toast {
+        background: var(--surface);
+        border-radius: 0.75rem;
+        padding: 0.85rem 1rem;
+        box-shadow: 0 10px 30px rgba(15, 94, 240, 0.15);
+        border-left: 4px solid var(--brand);
+        pointer-events: auto;
+        min-width: 220px;
+      }
+
+      .toast.success {
+        border-left-color: #22c55e;
+      }
+
+      .toast.info {
+        border-left-color: #0ea5e9;
+      }
+
+      .toast.error {
+        border-left-color: #ef4444;
+      }
+
+      .toast button {
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        float: right;
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        z-index: 25;
+      }
+
+      .modal.is-open {
+        display: flex;
+      }
+
+      .modal__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(3px);
+      }
+
+      .modal__dialog {
+        position: relative;
+        background: var(--surface);
+        border-radius: 1.25rem;
+        box-shadow: 0 40px 80px rgba(15, 94, 240, 0.25);
+        width: min(960px, 100%);
+        max-height: min(90vh, 720px);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .modal__body {
+        padding: clamp(1.25rem, 3vw, 2.5rem);
+        overflow-y: auto;
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .modal-header h2 {
+        margin: 0;
+      }
+
+      .card h1 {
+        margin-top: 0;
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+      }
+
+      .card p {
+        line-height: 1.6;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      .primary-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.4rem;
+        background: var(--brand);
+        color: #fff;
+        border-radius: 999px;
+        font-weight: 600;
+        transition: background 0.2s ease;
+      }
+
+      .primary-action:hover,
+      .primary-action:focus {
+        background: var(--brand-dark);
+        outline: none;
+      }
+
+      footer {
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+        padding: 2rem 1rem;
+      }
+
+      @media (max-width: 960px) {
+        nav {
+          flex-direction: column;
+          gap: 0.75rem;
+          align-items: flex-start;
+        }
+
+        .nav-left {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 1rem;
+        }
+
+        .layout {
+          flex-direction: column;
+        }
+
+        aside.sidebar {
+          width: 100%;
+          flex-direction: row;
+          gap: 1rem;
+          overflow-x: auto;
+        }
+
+        .sidebar nav ul {
+          flex-direction: row;
+        }
+      }
+    </style>
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body>
+    <nav>
+      <div class="nav-left">
+        <a class="brand" href="{% url 'home' %}">CoreQuote</a>
+        {% if user.is_authenticated %}
+          {% with active_app=request.resolver_match.app_name %}
+            <ul class="nav-links">
+              <li>
+                <a href="{% url 'clients:list' %}" class="{% if active_app == 'clients' %}active{% endif %}">Clientes</a>
+              </li>
+              <li>
+                <a href="{% url 'inventory:list' %}" class="{% if active_app == 'inventory' %}active{% endif %}">Inventario</a>
+              </li>
+              <li>
+                <a href="{% url 'quotes:list' %}" class="{% if active_app == 'quotes' %}active{% endif %}">Cotizaciones</a>
+              </li>
+              <li>
+                <a href="{% url 'reports:list' %}" class="{% if active_app == 'reports' %}active{% endif %}">Reportes</a>
+              </li>
+            </ul>
+          {% endwith %}
+        {% endif %}
+      </div>
+      <div class="nav-right">
+        {% if user.is_authenticated %}
+          <details class="user-menu">
+            <summary>{{ user.get_full_name|default:user.username }}</summary>
+            <div class="user-menu__dropdown">
+              <a href="{% url 'accounts:profile' %}">Mis datos</a>
+              <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit">Salir</button>
+              </form>
+            </div>
+          </details>
+        {% else %}
+          <a class="login-btn" href="{% url 'login' %}">Iniciar sesión</a>
+        {% endif %}
+      </div>
+    </nav>
+    <div class="layout">
+      {% if user.is_authenticated %}
+        <aside class="sidebar">
+          <div>
+            <h2>Navegación</h2>
+            <nav>
+              <ul>
+                {% with active_app=request.resolver_match.app_name %}
+                  <li><a href="{% url 'clients:list' %}" class="{% if active_app == 'clients' %}active{% endif %}">Clientes</a></li>
+                  <li><a href="{% url 'inventory:list' %}" class="{% if active_app == 'inventory' %}active{% endif %}">Inventario</a></li>
+                  <li><a href="{% url 'quotes:list' %}" class="{% if active_app == 'quotes' %}active{% endif %}">Cotizaciones</a></li>
+                  <li><a href="{% url 'reports:list' %}" class="{% if active_app == 'reports' %}active{% endif %}">Reportes</a></li>
+                {% endwith %}
+              </ul>
+            </nav>
+          </div>
+        </aside>
+      {% endif %}
+      <main>
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+    <footer>
+      CoreQuote © {% now 'Y' %}. Simplifica la gestión de tus productos y cotizaciones.
+    </footer>
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+    <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ME3gl2+wS1U1Iw2skTKU9sWYGRGXX6Qg+kUiWnFTt84OJ3swa7wSe3z1L2fGr2vX" crossorigin="anonymous"></script>
+    <script>
+      (function () {
+        const toastContainer = document.getElementById("toast-container");
+
+        const getDetail = (event) => {
+          if (!event.detail) return null;
+          if (Object.prototype.hasOwnProperty.call(event.detail, "value")) {
+            return event.detail.value;
+          }
+          return event.detail;
+        };
+
+        const htmlToFragment = (html) => {
+          const template = document.createElement("template");
+          template.innerHTML = html.trim();
+          return template.content;
+        };
+
+        const showToast = ({ message, type = "info" }) => {
+          if (!message) return;
+          const toast = document.createElement("div");
+          toast.className = `toast ${type}`;
+          toast.innerHTML = `<button type="button" aria-label="Cerrar">×</button><div>${message}</div>`;
+          const close = () => toast.remove();
+          toast.querySelector("button").addEventListener("click", close);
+          toastContainer.appendChild(toast);
+          setTimeout(close, 4500);
+        };
+
+        let activeModalTrigger = null;
+
+        const findModal = (element) => {
+          if (!element) return null;
+          if (element.classList && element.classList.contains("modal")) {
+            return element;
+          }
+          return element.closest?.(".modal") || null;
+        };
+
+        const focusFirstField = (modal) => {
+          if (!modal) return;
+          const selector = [
+            "button:not([disabled])",
+            "[href]",
+            "input:not([disabled])",
+            "select:not([disabled])",
+            "textarea:not([disabled])",
+          ].join(",");
+          const focusable = modal.querySelector(selector);
+          if (focusable && typeof focusable.focus === "function") {
+            focusable.focus();
+          }
+        };
+
+        const openModal = (modal) => {
+          if (!modal) return;
+          modal.classList.add("is-open");
+          modal.setAttribute("aria-hidden", "false");
+          focusFirstField(modal);
+        };
+
+        const closeModal = (modal) => {
+          if (!modal) return;
+          modal.classList.remove("is-open");
+          modal.setAttribute("aria-hidden", "true");
+          if (activeModalTrigger && document.body.contains(activeModalTrigger)) {
+            activeModalTrigger.focus();
+          }
+          activeModalTrigger = null;
+        };
+
+        document.body.addEventListener("click", (event) => {
+          const dismiss = event.target.closest?.("[data-modal-dismiss]");
+          if (dismiss) {
+            const modal = findModal(dismiss);
+            if (modal && modal.classList.contains("is-open")) {
+              event.preventDefault();
+              closeModal(modal);
+            }
+          }
+        });
+
+        document.body.addEventListener("htmx:beforeRequest", (event) => {
+          const trigger = event.target.closest?.("[data-modal-trigger]");
+          if (trigger) {
+            activeModalTrigger = trigger;
+          }
+        });
+
+        document.body.addEventListener("htmx:afterSwap", (event) => {
+          if (!(event.target instanceof HTMLElement)) return;
+          if (event.target.classList.contains("modal__body")) {
+            const modal = findModal(event.target);
+            if (modal) {
+              openModal(modal);
+            }
+          }
+        });
+
+        document.body.addEventListener("modal", (event) => {
+          const detail = getDetail(event);
+          if (!detail || !detail.target) return;
+          const modal = document.querySelector(detail.target);
+          if (!modal) return;
+          if (detail.action === "close") {
+            closeModal(modal);
+          } else if (detail.action === "open") {
+            openModal(modal);
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            const modal = document.querySelector(".modal.is-open");
+            if (modal) {
+              event.preventDefault();
+              closeModal(modal);
+            }
+          }
+        });
+
+        document.body.addEventListener("toast", (event) => {
+          const detail = getDetail(event) || {};
+          showToast(detail);
+        });
+
+        document.body.addEventListener("listChanged", (event) => {
+          const detail = getDetail(event);
+          if (!detail) return;
+          const action = detail.action || "append";
+
+          if (action === "remove" && detail.selector) {
+            const element = document.querySelector(detail.selector);
+            if (element) {
+              element.remove();
+            }
+            return;
+          }
+
+          const fragment = detail.html ? htmlToFragment(detail.html) : null;
+
+          if (action === "replace" && detail.selector && fragment) {
+            const element = document.querySelector(detail.selector);
+            const replacement = fragment.firstElementChild;
+            if (element && replacement) {
+              element.replaceWith(replacement);
+            }
+            return;
+          }
+
+          const target = detail.target ? document.querySelector(detail.target) : null;
+          if (!target || !fragment) return;
+
+          const nodes = Array.from(fragment.childNodes);
+          if (!nodes.length) return;
+
+          if (action === "prepend") {
+            for (let i = nodes.length - 1; i >= 0; i -= 1) {
+              target.insertBefore(nodes[i], target.firstChild);
+            }
+          } else {
+            nodes.forEach((node) => target.appendChild(node));
+          }
+        });
+
+        document.body.addEventListener("clearForm", (event) => {
+          const detail = getDetail(event);
+          if (!detail || !detail.selector) return;
+          const form = document.querySelector(detail.selector);
+          if (form && typeof form.reset === "function") {
+            form.reset();
+          }
+        });
+
+        const getCookie = (name) => {
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) {
+            return parts.pop().split(";").shift();
+          }
+          return null;
+        };
+
+        document.addEventListener("htmx:configRequest", (event) => {
+          const token = getCookie("csrftoken");
+          if (token) {
+            event.detail.headers["X-CSRFToken"] = token;
+          }
+        });
+      })();
+    </script>
+    {% block extra_body %}{% endblock %}
+  </body>
+</html>

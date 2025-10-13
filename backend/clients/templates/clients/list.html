@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Clientes · CoreQuote{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div>
+    <h1>Clientes</h1>
+    <p class="muted">Gestiona el catálogo de clientes y mantén sus datos al día.</p>
+  </div>
+</section>
+<div class="two-column">
+  <section class="card">
+    <div id="client-form-container">
+      {% include "clients/partials/client_form.html" with form=form %}
+    </div>
+  </section>
+  <section class="card table-card">
+    <div class="table-header">
+      <h2>Listado</h2>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Creado</th>
+            <th class="actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="clients-table-body">
+          {% for client in clients %}
+            {% include "clients/partials/client_row.html" with client=client %}
+          {% empty %}
+            <tr>
+              <td colspan="4" class="empty">No hay clientes registrados todavía.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

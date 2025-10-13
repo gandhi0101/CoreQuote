@@ -1,0 +1,163 @@
+<div class="quote-form" data-quote-form data-mode="{% if mode == 'edit' %}edit{% else %}create{% endif %}">
+  <div class="modal-header">
+    <h2 id="quote-modal-title">{% if mode == 'edit' %}Editar cotización{% else %}Nueva cotización{% endif %}</h2>
+    <a href="{% url 'quotes:list' %}" class="link" data-modal-dismiss>Cerrar</a>
+  </div>
+  <form
+    method="post"
+    {% if mode == 'edit' and quote %}
+      action="{% url 'quotes:edit' quote.pk %}"
+      hx-post="{% url 'quotes:edit' quote.pk %}"
+    {% else %}
+      action="{% url 'quotes:create' %}"
+      hx-post="{% url 'quotes:create' %}"
+    {% endif %}
+    hx-target="#quote-modal-body"
+    hx-swap="innerHTML"
+    class="stacked-form"
+  >
+    {% csrf_token %}
+    <div class="form-field">
+      <label for="{{ form.client.id_for_label }}">{{ form.client.label }}</label>
+      {{ form.client }}
+      {% if form.client.errors %}
+        <p class="error">{{ form.client.errors|join:', ' }}</p>
+      {% endif %}
+    </div>
+    <div class="form-field">
+      <label for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+      {{ form.status }}
+      {% if form.status.errors %}
+        <p class="error">{{ form.status.errors|join:', ' }}</p>
+      {% endif %}
+    </div>
+    <div class="quote-items">
+      <h3>Productos</h3>
+      {{ formset.management_form }}
+      <div class="table-wrapper mini">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th class="narrow">Cantidad</th>
+              <th class="narrow">Precio unitario</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody data-items-container>
+            {% for item_form in formset.forms %}
+              {% include "quotes/partials/quote_item_row.html" with form=item_form index=forloop.counter0 %}
+            {% empty %}
+              {% with form=formset.empty_form %}
+                {% include "quotes/partials/quote_item_row.html" with form=form index=0 %}
+              {% endwith %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <button type="button" class="secondary" data-add-item>Agregar producto</button>
+    </div>
+    {% if form.non_field_errors %}
+      <div class="form-field">
+        <p class="error">{{ form.non_field_errors|join:', ' }}</p>
+      </div>
+    {% endif %}
+    <div class="form-actions">
+      <button type="submit" class="primary">{% if mode == 'edit' %}Guardar cambios{% else %}Guardar cotización{% endif %}</button>
+      {% if mode == 'edit' %}
+        <button
+          type="button"
+          class="secondary"
+          hx-get="{% url 'quotes:create' %}"
+          hx-target="#quote-modal-body"
+          hx-swap="innerHTML"
+        >Cancelar edición</button>
+      {% endif %}
+    </div>
+  </form>
+  {% with form=formset.empty_form %}
+    <template data-item-template>
+      {% include "quotes/partials/quote_item_row.html" with form=form index="__prefix__" %}
+    </template>
+  {% endwith %}
+</div>
+<script>
+  (function() {
+    const wrapper = document.currentScript.previousElementSibling;
+    if (!wrapper || wrapper.dataset.enhanced === "true") {
+      if (wrapper) {
+        wrapper.dataset.enhanced = "true";
+      }
+      return;
+    }
+    wrapper.dataset.enhanced = "true";
+
+    const itemsContainer = wrapper.querySelector('[data-items-container]');
+    const addButton = wrapper.querySelector('[data-add-item]');
+    const totalFormsInput = wrapper.querySelector('input[name="items-TOTAL_FORMS"]');
+    const template = wrapper.querySelector('template[data-item-template]');
+
+    const renumber = () => {
+      const rows = wrapper.querySelectorAll('[data-item-row]');
+      rows.forEach((row, index) => {
+        row.dataset.index = index;
+        row.querySelectorAll('input, select, label').forEach((element) => {
+          if (element.name) {
+            element.name = element.name.replace(/items-\d+-/, `items-${index}-`);
+          }
+          if (element.id) {
+            element.id = element.id.replace(/items-\d+-/, `items-${index}-`);
+          }
+          if (element.getAttribute('for')) {
+            element.setAttribute('for', element.getAttribute('for').replace(/items-\d+-/, `items-${index}-`));
+          }
+        });
+      });
+      totalFormsInput.value = rows.length;
+      if (!rows.length) {
+        addItem();
+      }
+    };
+
+    const addItem = () => {
+      const index = parseInt(totalFormsInput.value, 10) || 0;
+      const html = template.innerHTML.replace(/__prefix__/g, index);
+      const fragment = document.createElement('template');
+      fragment.innerHTML = html.trim();
+      const node = fragment.content.firstElementChild;
+      const siblings = fragment.content.querySelectorAll('[data-item-row] ~ tr.full-error');
+      itemsContainer.appendChild(node);
+      siblings.forEach((extra) => itemsContainer.appendChild(extra));
+      renumber();
+    };
+
+    const removeItem = (button) => {
+      const row = button.closest('[data-item-row]');
+      if (!row) {
+        return;
+      }
+      const extras = [];
+      let sibling = row.nextElementSibling;
+      while (sibling && sibling.classList.contains('full-error')) {
+        extras.push(sibling);
+        sibling = sibling.nextElementSibling;
+      }
+      row.remove();
+      extras.forEach((el) => el.remove());
+      renumber();
+    };
+
+    wrapper.addEventListener('click', (event) => {
+      if (event.target.matches('[data-remove-item]')) {
+        event.preventDefault();
+        removeItem(event.target);
+      } else if (event.target === addButton) {
+        event.preventDefault();
+        addItem();
+      }
+    });
+
+    // Inicializa contador correcto
+    renumber();
+  })();
+</script>

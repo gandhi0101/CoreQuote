@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}CoreQuote | Control inteligente de tu negocio{% endblock %}
+
+{% block content %}
+  <section class="card">
+    <h1>Controla tus productos y cotizaciones en un solo lugar</h1>
+    <p>
+      CoreQuote es la plataforma diseñada para que tu equipo gestione clientes,
+      inventario y cotizaciones sin complicaciones. Organiza tus datos, colabora
+      en tiempo real y genera propuestas profesionales en minutos.
+    </p>
+    <p>
+      Para empezar a trabajar con tus clientes y productos, inicia sesión con tu
+      cuenta. Si aún no tienes acceso, ponte en contacto con el administrador de
+      CoreQuote en tu empresa.
+    </p>
+    {% if not user.is_authenticated %}
+      <a class="primary-action" href="{% url 'login' %}">Iniciar sesión</a>
+    {% else %}
+      <a class="primary-action" href="{% url 'accounts:profile' %}">Ir al panel</a>
+    {% endif %}
+  </section>
+{% endblock %}
