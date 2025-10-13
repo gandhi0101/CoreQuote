@@ -1,0 +1,48 @@
+<form
+  method="post"
+  {% if report %}
+    action="{% url 'reports:update' report.pk %}"
+    hx-post="{% url 'reports:update' report.pk %}"
+    hx-target="#report-{{ report.pk }}"
+    hx-swap="outerHTML"
+  {% else %}
+    action="{% url 'reports:create' %}"
+    hx-post="{% url 'reports:create' %}"
+    hx-target="#report-form-container"
+    hx-swap="outerHTML"
+  {% endif %}
+  class="stacked-form"
+>
+  {% csrf_token %}
+  <div class="form-field">
+    <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+    {{ form.name }}
+    {% if form.name.errors %}
+      <p class="error">{{ form.name.errors|join:', ' }}</p>
+    {% endif %}
+  </div>
+  <div class="form-field">
+    <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+    {{ form.description }}
+    {% if form.description.errors %}
+      <p class="error">{{ form.description.errors|join:', ' }}</p>
+    {% endif %}
+  </div>
+  {% if form.non_field_errors %}
+    <div class="form-field">
+      <p class="error">{{ form.non_field_errors|join:', ' }}</p>
+    </div>
+  {% endif %}
+  <div class="form-actions">
+    <button type="submit" class="primary">{% if report %}Guardar cambios{% else %}Guardar reporte{% endif %}</button>
+    {% if report %}
+      <button
+        type="button"
+        class="secondary"
+        hx-get="{% url 'reports:row' report.pk %}"
+        hx-target="#report-{{ report.pk }}"
+        hx-swap="outerHTML"
+      >Cancelar</button>
+    {% endif %}
+  </div>
+</form>

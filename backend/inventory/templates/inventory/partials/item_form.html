@@ -1,0 +1,64 @@
+<form
+  method="post"
+  {% if item %}
+    action="{% url 'inventory:update' item.pk %}"
+    hx-post="{% url 'inventory:update' item.pk %}"
+    hx-target="#item-{{ item.pk }}"
+    hx-swap="outerHTML"
+  {% else %}
+    action="{% url 'inventory:create' %}"
+    hx-post="{% url 'inventory:create' %}"
+    hx-target="#item-form-container"
+    hx-swap="outerHTML"
+  {% endif %}
+  class="stacked-form"
+>
+  {% csrf_token %}
+  <div class="form-field">
+    <label for="{{ form.sku.id_for_label }}">{{ form.sku.label }}</label>
+    {{ form.sku }}
+    {% if form.sku.errors %}
+      <p class="error">{{ form.sku.errors|join:', ' }}</p>
+    {% endif %}
+  </div>
+  <div class="form-field">
+    <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+    {{ form.name }}
+    {% if form.name.errors %}
+      <p class="error">{{ form.name.errors|join:', ' }}</p>
+    {% endif %}
+  </div>
+  <div class="form-row">
+    <div class="form-field">
+      <label for="{{ form.stock.id_for_label }}">{{ form.stock.label }}</label>
+      {{ form.stock }}
+      {% if form.stock.errors %}
+        <p class="error">{{ form.stock.errors|join:', ' }}</p>
+      {% endif %}
+    </div>
+    <div class="form-field">
+      <label for="{{ form.cost.id_for_label }}">{{ form.cost.label }}</label>
+      {{ form.cost }}
+      {% if form.cost.errors %}
+        <p class="error">{{ form.cost.errors|join:', ' }}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% if form.non_field_errors %}
+    <div class="form-field">
+      <p class="error">{{ form.non_field_errors|join:', ' }}</p>
+    </div>
+  {% endif %}
+  <div class="form-actions">
+    <button type="submit" class="primary">{% if item %}Guardar cambios{% else %}Guardar producto{% endif %}</button>
+    {% if item %}
+      <button
+        type="button"
+        class="secondary"
+        hx-get="{% url 'inventory:row' item.pk %}"
+        hx-target="#item-{{ item.pk }}"
+        hx-swap="outerHTML"
+      >Cancelar</button>
+    {% endif %}
+  </div>
+</form>

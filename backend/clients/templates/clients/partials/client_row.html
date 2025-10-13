@@ -1,0 +1,21 @@
+<tr id="client-{{ client.pk }}">
+  <td class="cell-strong">{{ client.name }}</td>
+  <td>{% if client.email %}{{ client.email }}{% else %}<span class="muted">Sin correo</span>{% endif %}</td>
+  <td>{{ client.created_at|date:"d/m/Y H:i" }}</td>
+  <td class="row-actions">
+    <button
+      class="link"
+      hx-get="{% url 'clients:update' client.pk %}"
+      hx-target="#client-{{ client.pk }}"
+      hx-swap="outerHTML"
+    >Editar</button>
+    <button
+      class="link danger"
+      hx-delete="{% url 'clients:delete' client.pk %}"
+      hx-target="#client-{{ client.pk }}"
+      hx-swap="outerHTML"
+      hx-confirm="¿Eliminar este cliente?"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+    >Eliminar</button>
+  </td>
+</tr>

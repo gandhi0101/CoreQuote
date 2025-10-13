@@ -1,0 +1,48 @@
+<form
+  method="post"
+  {% if client %}
+    action="{% url 'clients:update' client.pk %}"
+    hx-post="{% url 'clients:update' client.pk %}"
+    hx-target="#client-{{ client.pk }}"
+    hx-swap="outerHTML"
+  {% else %}
+    action="{% url 'clients:create' %}"
+    hx-post="{% url 'clients:create' %}"
+    hx-target="#client-form-container"
+    hx-swap="outerHTML"
+  {% endif %}
+  class="stacked-form"
+>
+  {% csrf_token %}
+  <div class="form-field">
+    <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+    {{ form.name }}
+    {% if form.name.errors %}
+      <p class="error">{{ form.name.errors|join:', ' }}</p>
+    {% endif %}
+  </div>
+  <div class="form-field">
+    <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+    {{ form.email }}
+    {% if form.email.errors %}
+      <p class="error">{{ form.email.errors|join:', ' }}</p>
+    {% endif %}
+  </div>
+  {% if form.non_field_errors %}
+    <div class="form-field">
+      <p class="error">{{ form.non_field_errors|join:', ' }}</p>
+    </div>
+  {% endif %}
+  <div class="form-actions">
+    <button type="submit" class="primary">{% if client %}Guardar cambios{% else %}Guardar cliente{% endif %}</button>
+    {% if client %}
+      <button
+        type="button"
+        class="secondary"
+        hx-get="{% url 'clients:row' client.pk %}"
+        hx-target="#client-{{ client.pk }}"
+        hx-swap="outerHTML"
+      >Cancelar</button>
+    {% endif %}
+  </div>
+</form>

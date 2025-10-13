@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes · CoreQuote{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div>
+    <h1>Reportes</h1>
+    <p class="muted">Guarda resúmenes y hallazgos clave para tu equipo.</p>
+  </div>
+</section>
+<div class="two-column">
+  <section class="card">
+    <h2>Nuevo reporte</h2>
+    <div id="report-form-container">
+      {% include "reports/partials/report_form.html" with form=form %}
+    </div>
+  </section>
+  <section class="card table-card">
+    <div class="table-header">
+      <h2>Historial</h2>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Creado</th>
+            <th class="actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="reports-table-body">
+          {% for report in reports %}
+            {% include "reports/partials/report_row.html" with report=report %}
+          {% empty %}
+            <tr>
+              <td colspan="4" class="empty">Todavía no has creado reportes.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Cotizaciones · CoreQuote{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div>
+    <h1>Cotizaciones</h1>
+    <p class="muted">Construye y administra propuestas listas para compartir.</p>
+  </div>
+</section>
+<div class="two-column">
+  <section class="card" id="quote-form-card">
+    <div id="quote-form-container">
+      {% include "quotes/partials/quote_form.html" with form=form formset=formset mode='create' %}
+    </div>
+  </section>
+  <section class="card table-card">
+    <div class="table-header">
+      <h2>Historial</h2>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Cliente</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Creado</th>
+            <th class="actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="quotes-table-body">
+          {% for quote in quotes %}
+            {% include "quotes/partials/quote_row.html" with quote=quote %}
+          {% empty %}
+            <tr>
+              <td colspan="6" class="empty">Aún no has generado cotizaciones.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,3 +1,111 @@
-from django.shortcuts import render
+import json
 
-# Create your views here.
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, HttpResponseNotAllowed
+from django.shortcuts import get_object_or_404, render
+from django.template.loader import render_to_string
+
+from .forms import ItemForm
+from .models import Item
+
+
+def _render_item_form(request, form, item=None):
+    return render(
+        request,
+        "inventory/partials/item_form.html",
+        {"form": form, "item": item},
+    )
+
+
+@login_required
+def item_list(request):
+    return render(
+        request,
+        "inventory/list.html",
+        {
+            "items": Item.objects.all(),
+            "form": ItemForm(),
+        },
+    )
+
+
+@login_required
+def item_create(request):
+    if request.method != "POST":
+        return _render_item_form(request, ItemForm())
+
+    form = ItemForm(request.POST)
+    if not form.is_valid():
+        return _render_item_form(request, form)
+
+    item = form.save()
+    form = ItemForm()
+    form_html = render_to_string(
+        "inventory/partials/item_form.html",
+        {"form": form},
+        request=request,
+    )
+    row_html = render_to_string(
+        "inventory/partials/item_row.html",
+        {"item": item},
+        request=request,
+    )
+    response = HttpResponse(form_html)
+    response["HX-Trigger"] = json.dumps(
+        {
+            "toast": {"message": "Producto agregado al inventario.", "type": "success"},
+            "listChanged": {
+                "action": "prepend",
+                "target": "#inventory-table-body",
+                "html": row_html,
+            },
+        }
+    )
+    return response
+
+
+@login_required
+def item_update(request, pk):
+    item = get_object_or_404(Item, pk=pk)
+
+    if request.method == "GET":
+        return _render_item_form(request, ItemForm(instance=item), item)
+
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["GET", "POST"])
+
+    form = ItemForm(request.POST, instance=item)
+    if not form.is_valid():
+        return _render_item_form(request, form, item)
+
+    item = form.save()
+    row_html = render_to_string(
+        "inventory/partials/item_row.html",
+        {"item": item},
+        request=request,
+    )
+    response = HttpResponse(row_html)
+    response["HX-Trigger"] = json.dumps(
+        {"toast": {"message": "Producto actualizado.", "type": "success"}}
+    )
+    return response
+
+
+@login_required
+def item_row(request, pk):
+    item = get_object_or_404(Item, pk=pk)
+    return render(request, "inventory/partials/item_row.html", {"item": item})
+
+
+@login_required
+def item_delete(request, pk):
+    if request.method not in {"POST", "DELETE"}:
+        return HttpResponseNotAllowed(["POST", "DELETE"])
+
+    item = get_object_or_404(Item, pk=pk)
+    item.delete()
+    response = HttpResponse("")
+    response["HX-Trigger"] = json.dumps(
+        {"toast": {"message": "Producto eliminado del inventario.", "type": "info"}}
+    )
+    return response

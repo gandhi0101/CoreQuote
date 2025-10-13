@@ -75,6 +75,12 @@
         transition: all 0.2s ease;
       }
 
+      .nav-links a.active {
+        background: rgba(15, 94, 240, 0.12);
+        color: var(--brand);
+        font-weight: 600;
+      }
+
       .nav-links a:hover,
       .nav-links a:focus {
         background: rgba(15, 94, 240, 0.08);
@@ -230,6 +236,27 @@
         padding: 2.5rem clamp(1rem, 4vw, 3rem);
       }
 
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+      }
+
+      .page-header h1 {
+        margin: 0;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .two-column {
+        display: grid;
+        gap: 2rem;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      }
+
       .card {
         background: var(--surface);
         border-radius: 1.25rem;
@@ -237,6 +264,254 @@
         box-shadow: 0 30px 60px rgba(15, 94, 240, 0.08);
         max-width: 780px;
         margin: 0 auto;
+      }
+
+      .table-card h2 {
+        margin-top: 0;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+      }
+
+      .table-wrapper.mini {
+        margin-bottom: 1rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      table thead th {
+        text-align: left;
+        font-size: 0.85rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding-bottom: 0.75rem;
+      }
+
+      table tbody td {
+        padding: 0.75rem 0;
+        border-top: 1px solid rgba(15, 94, 240, 0.1);
+      }
+
+      table tbody tr:first-child td {
+        border-top: none;
+      }
+
+      table tbody tr:hover td {
+        background: rgba(15, 94, 240, 0.05);
+      }
+
+      td.cell-strong {
+        font-weight: 600;
+      }
+
+      td.actions,
+      th.actions {
+        text-align: right;
+      }
+
+      td.empty {
+        text-align: center;
+        padding: 2rem 0;
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      .row-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.35rem;
+        flex-wrap: wrap;
+      }
+
+      .stacked-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .form-actions .primary,
+      .form-actions .secondary {
+        padding: 0.6rem 1.2rem;
+        border-radius: 0.75rem;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .form-actions .primary {
+        background: var(--brand);
+        color: #fff;
+      }
+
+      .form-actions .primary:hover,
+      .form-actions .primary:focus {
+        background: var(--brand-dark);
+      }
+
+      .form-actions .secondary {
+        background: rgba(15, 94, 240, 0.08);
+        color: var(--brand);
+      }
+
+      .form-actions .secondary:hover,
+      .form-actions .secondary:focus {
+        background: rgba(15, 94, 240, 0.16);
+      }
+
+      .link {
+        background: none;
+        border: none;
+        color: var(--brand);
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.5rem;
+      }
+
+      .link:hover,
+      .link:focus {
+        background: rgba(15, 94, 240, 0.12);
+        outline: none;
+      }
+
+      .link.danger {
+        color: #d14343;
+      }
+
+      .link.danger:hover,
+      .link.danger:focus {
+        background: rgba(209, 67, 67, 0.12);
+      }
+
+      .error {
+        color: #d14343;
+        font-size: 0.85rem;
+        margin: 0;
+      }
+
+      .status {
+        padding: 0.25rem 0.65rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        background: rgba(15, 94, 240, 0.1);
+        color: var(--brand);
+      }
+
+      .status.status-won {
+        background: rgba(34, 197, 94, 0.15);
+        color: #15803d;
+      }
+
+      .status.status-lost {
+        background: rgba(244, 63, 94, 0.15);
+        color: #be123c;
+      }
+
+      .status.status-sent {
+        background: rgba(245, 158, 11, 0.2);
+        color: #b45309;
+      }
+
+      .quote-items h3 {
+        margin-bottom: 0.75rem;
+      }
+
+      .items-table th,
+      .items-table td {
+        padding-right: 0.75rem;
+      }
+
+      .items-table td.narrow,
+      .items-table th.narrow {
+        width: 120px;
+      }
+
+      .items-table td.remove {
+        width: 90px;
+        text-align: right;
+      }
+
+      [data-disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+
+      #toast-container {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        z-index: 20;
+        pointer-events: none;
+      }
+
+      .toast {
+        background: var(--surface);
+        border-radius: 0.75rem;
+        padding: 0.85rem 1rem;
+        box-shadow: 0 10px 30px rgba(15, 94, 240, 0.15);
+        border-left: 4px solid var(--brand);
+        pointer-events: auto;
+        min-width: 220px;
+      }
+
+      .toast.success {
+        border-left-color: #22c55e;
+      }
+
+      .toast.info {
+        border-left-color: #0ea5e9;
+      }
+
+      .toast.error {
+        border-left-color: #ef4444;
+      }
+
+      .toast button {
+        background: none;
+        border: none;
+        color: var(--muted);
+        cursor: pointer;
+        float: right;
       }
 
       .card h1 {
@@ -311,12 +586,22 @@
       <div class="nav-left">
         <a class="brand" href="{% url 'home' %}">CoreQuote</a>
         {% if user.is_authenticated %}
-          <ul class="nav-links">
-            <li><a href="#">Clientes</a></li>
-            <li><a href="#">Inventario</a></li>
-            <li><a href="#">Cotizaciones</a></li>
-            <li><a href="#">Reportes</a></li>
-          </ul>
+          {% with active_app=request.resolver_match.app_name %}
+            <ul class="nav-links">
+              <li>
+                <a href="{% url 'clients:list' %}" class="{% if active_app == 'clients' %}active{% endif %}">Clientes</a>
+              </li>
+              <li>
+                <a href="{% url 'inventory:list' %}" class="{% if active_app == 'inventory' %}active{% endif %}">Inventario</a>
+              </li>
+              <li>
+                <a href="{% url 'quotes:list' %}" class="{% if active_app == 'quotes' %}active{% endif %}">Cotizaciones</a>
+              </li>
+              <li>
+                <a href="{% url 'reports:list' %}" class="{% if active_app == 'reports' %}active{% endif %}">Reportes</a>
+              </li>
+            </ul>
+          {% endwith %}
         {% endif %}
       </div>
       <div class="nav-right">
@@ -343,10 +628,12 @@
             <h2>Navegación</h2>
             <nav>
               <ul>
-                <li><a href="#">Clientes</a></li>
-                <li><a href="#">Inventario</a></li>
-                <li><a href="#">Cotizaciones</a></li>
-                <li><a href="#">Reportes</a></li>
+                {% with active_app=request.resolver_match.app_name %}
+                  <li><a href="{% url 'clients:list' %}" class="{% if active_app == 'clients' %}active{% endif %}">Clientes</a></li>
+                  <li><a href="{% url 'inventory:list' %}" class="{% if active_app == 'inventory' %}active{% endif %}">Inventario</a></li>
+                  <li><a href="{% url 'quotes:list' %}" class="{% if active_app == 'quotes' %}active{% endif %}">Cotizaciones</a></li>
+                  <li><a href="{% url 'reports:list' %}" class="{% if active_app == 'reports' %}active{% endif %}">Reportes</a></li>
+                {% endwith %}
               </ul>
             </nav>
           </div>
@@ -359,5 +646,107 @@
     <footer>
       CoreQuote © {% now 'Y' %}. Simplifica la gestión de tus productos y cotizaciones.
     </footer>
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+    <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ME3gl2+wS1U1Iw2skTKU9sWYGRGXX6Qg+kUiWnFTt84OJ3swa7wSe3z1L2fGr2vX" crossorigin="anonymous"></script>
+    <script>
+      (function () {
+        const toastContainer = document.getElementById("toast-container");
+
+        const getDetail = (event) => {
+          if (!event.detail) return null;
+          if (Object.prototype.hasOwnProperty.call(event.detail, "value")) {
+            return event.detail.value;
+          }
+          return event.detail;
+        };
+
+        const htmlToFragment = (html) => {
+          const template = document.createElement("template");
+          template.innerHTML = html.trim();
+          return template.content;
+        };
+
+        const showToast = ({ message, type = "info" }) => {
+          if (!message) return;
+          const toast = document.createElement("div");
+          toast.className = `toast ${type}`;
+          toast.innerHTML = `<button type="button" aria-label="Cerrar">×</button><div>${message}</div>`;
+          const close = () => toast.remove();
+          toast.querySelector("button").addEventListener("click", close);
+          toastContainer.appendChild(toast);
+          setTimeout(close, 4500);
+        };
+
+        document.body.addEventListener("toast", (event) => {
+          const detail = getDetail(event) || {};
+          showToast(detail);
+        });
+
+        document.body.addEventListener("listChanged", (event) => {
+          const detail = getDetail(event);
+          if (!detail) return;
+          const action = detail.action || "append";
+
+          if (action === "remove" && detail.selector) {
+            const element = document.querySelector(detail.selector);
+            if (element) {
+              element.remove();
+            }
+            return;
+          }
+
+          const fragment = detail.html ? htmlToFragment(detail.html) : null;
+
+          if (action === "replace" && detail.selector && fragment) {
+            const element = document.querySelector(detail.selector);
+            const replacement = fragment.firstElementChild;
+            if (element && replacement) {
+              element.replaceWith(replacement);
+            }
+            return;
+          }
+
+          const target = detail.target ? document.querySelector(detail.target) : null;
+          if (!target || !fragment) return;
+
+          const nodes = Array.from(fragment.childNodes);
+          if (!nodes.length) return;
+
+          if (action === "prepend") {
+            for (let i = nodes.length - 1; i >= 0; i -= 1) {
+              target.insertBefore(nodes[i], target.firstChild);
+            }
+          } else {
+            nodes.forEach((node) => target.appendChild(node));
+          }
+        });
+
+        document.body.addEventListener("clearForm", (event) => {
+          const detail = getDetail(event);
+          if (!detail || !detail.selector) return;
+          const form = document.querySelector(detail.selector);
+          if (form && typeof form.reset === "function") {
+            form.reset();
+          }
+        });
+
+        const getCookie = (name) => {
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) {
+            return parts.pop().split(";").shift();
+          }
+          return null;
+        };
+
+        document.addEventListener("htmx:configRequest", (event) => {
+          const token = getCookie("csrftoken");
+          if (token) {
+            event.detail.headers["X-CSRFToken"] = token;
+          }
+        });
+      })();
+    </script>
+    {% block extra_body %}{% endblock %}
   </body>
 </html>
