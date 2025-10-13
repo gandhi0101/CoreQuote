@@ -60,7 +60,7 @@
 
       .nav-links {
         display: flex;
-        
+        align-items: center;
         gap: 1rem;
         list-style: none;
         margin: 0;
@@ -352,33 +352,61 @@
         flex-wrap: wrap;
       }
 
-      .form-actions .primary,
-      .form-actions .secondary {
+      .form-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .form-panel__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .form-panel__header h2 {
+        margin: 0;
+      }
+
+      .form-panel__header .link {
+        font-size: 0.9rem;
+      }
+
+      .primary,
+      .secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
         padding: 0.6rem 1.2rem;
         border-radius: 0.75rem;
         border: none;
         font-weight: 600;
         cursor: pointer;
+        text-decoration: none;
       }
 
-      .form-actions .primary {
+      .primary {
         background: var(--brand);
         color: #fff;
       }
 
-      .form-actions .primary:hover,
-      .form-actions .primary:focus {
+      .primary:hover,
+      .primary:focus {
         background: var(--brand-dark);
+        color: #fff;
       }
 
-      .form-actions .secondary {
+      .secondary {
         background: rgba(15, 94, 240, 0.08);
         color: var(--brand);
       }
 
-      .form-actions .secondary:hover,
-      .form-actions .secondary:focus {
+      .secondary:hover,
+      .secondary:focus {
         background: rgba(15, 94, 240, 0.16);
+        color: var(--brand);
       }
 
       .link {
@@ -514,6 +542,56 @@
         float: right;
       }
 
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        z-index: 25;
+      }
+
+      .modal.is-open {
+        display: flex;
+      }
+
+      .modal__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(3px);
+      }
+
+      .modal__dialog {
+        position: relative;
+        background: var(--surface);
+        border-radius: 1.25rem;
+        box-shadow: 0 40px 80px rgba(15, 94, 240, 0.25);
+        width: min(960px, 100%);
+        max-height: min(90vh, 720px);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .modal__body {
+        padding: clamp(1.25rem, 3vw, 2.5rem);
+        overflow-y: auto;
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .modal-header h2 {
+        margin: 0;
+      }
+
       .card h1 {
         margin-top: 0;
         font-size: clamp(1.8rem, 4vw, 2.6rem);
@@ -585,7 +663,24 @@
     <nav>
       <div class="nav-left">
         <a class="brand" href="{% url 'home' %}">CoreQuote</a>
-        
+        {% if user.is_authenticated %}
+          {% with active_app=request.resolver_match.app_name %}
+            <ul class="nav-links">
+              <li>
+                <a href="{% url 'clients:list' %}" class="{% if active_app == 'clients' %}active{% endif %}">Clientes</a>
+              </li>
+              <li>
+                <a href="{% url 'inventory:list' %}" class="{% if active_app == 'inventory' %}active{% endif %}">Inventario</a>
+              </li>
+              <li>
+                <a href="{% url 'quotes:list' %}" class="{% if active_app == 'quotes' %}active{% endif %}">Cotizaciones</a>
+              </li>
+              <li>
+                <a href="{% url 'reports:list' %}" class="{% if active_app == 'reports' %}active{% endif %}">Reportes</a>
+              </li>
+            </ul>
+          {% endwith %}
+        {% endif %}
       </div>
       <div class="nav-right">
         {% if user.is_authenticated %}
@@ -611,24 +706,12 @@
             <h2>Navegación</h2>
             <nav>
               <ul>
-                {% if user.is_authenticated %}
-                  {% with active_app=request.resolver_match.app_name %}
-                    <ul class="nav-links">
-                      <li>
-                        <a href="{% url 'clients:list' %}" class="{% if active_app == 'clients' %}active{% endif %}">Clientes</a>
-                      </li>
-                      <li>
-                        <a href="{% url 'inventory:list' %}" class="{% if active_app == 'inventory' %}active{% endif %}">Inventario</a>
-                      </li>
-                      <li>
-                        <a href="{% url 'quotes:list' %}" class="{% if active_app == 'quotes' %}active{% endif %}">Cotizaciones</a>
-                      </li>
-                      <li>
-                        <a href="{% url 'reports:list' %}" class="{% if active_app == 'reports' %}active{% endif %}">Reportes</a>
-                      </li>
-                    </ul>
-                  {% endwith %}
-                {% endif %}
+                {% with active_app=request.resolver_match.app_name %}
+                  <li><a href="{% url 'clients:list' %}" class="{% if active_app == 'clients' %}active{% endif %}">Clientes</a></li>
+                  <li><a href="{% url 'inventory:list' %}" class="{% if active_app == 'inventory' %}active{% endif %}">Inventario</a></li>
+                  <li><a href="{% url 'quotes:list' %}" class="{% if active_app == 'quotes' %}active{% endif %}">Cotizaciones</a></li>
+                  <li><a href="{% url 'reports:list' %}" class="{% if active_app == 'reports' %}active{% endif %}">Reportes</a></li>
+                {% endwith %}
               </ul>
             </nav>
           </div>
@@ -671,6 +754,98 @@
           toastContainer.appendChild(toast);
           setTimeout(close, 4500);
         };
+
+        let activeModalTrigger = null;
+
+        const findModal = (element) => {
+          if (!element) return null;
+          if (element.classList && element.classList.contains("modal")) {
+            return element;
+          }
+          return element.closest?.(".modal") || null;
+        };
+
+        const focusFirstField = (modal) => {
+          if (!modal) return;
+          const selector = [
+            "button:not([disabled])",
+            "[href]",
+            "input:not([disabled])",
+            "select:not([disabled])",
+            "textarea:not([disabled])",
+          ].join(",");
+          const focusable = modal.querySelector(selector);
+          if (focusable && typeof focusable.focus === "function") {
+            focusable.focus();
+          }
+        };
+
+        const openModal = (modal) => {
+          if (!modal) return;
+          modal.classList.add("is-open");
+          modal.setAttribute("aria-hidden", "false");
+          focusFirstField(modal);
+        };
+
+        const closeModal = (modal) => {
+          if (!modal) return;
+          modal.classList.remove("is-open");
+          modal.setAttribute("aria-hidden", "true");
+          if (activeModalTrigger && document.body.contains(activeModalTrigger)) {
+            activeModalTrigger.focus();
+          }
+          activeModalTrigger = null;
+        };
+
+        document.body.addEventListener("click", (event) => {
+          const dismiss = event.target.closest?.("[data-modal-dismiss]");
+          if (dismiss) {
+            const modal = findModal(dismiss);
+            if (modal && modal.classList.contains("is-open")) {
+              event.preventDefault();
+              closeModal(modal);
+            }
+          }
+        });
+
+        document.body.addEventListener("htmx:beforeRequest", (event) => {
+          const trigger = event.target.closest?.("[data-modal-trigger]");
+          if (trigger) {
+            activeModalTrigger = trigger;
+          }
+        });
+
+        document.body.addEventListener("htmx:afterSwap", (event) => {
+          if (!(event.target instanceof HTMLElement)) return;
+          if (event.target.classList.contains("modal__body")) {
+            const modal = findModal(event.target);
+            if (modal) {
+              openModal(modal);
+            }
+          }
+        });
+
+        document.body.addEventListener("modal", (event) => {
+          const detail = getDetail(event);
+          if (!detail || !detail.target) return;
+          const modal = document.querySelector(detail.target);
+          if (!modal) return;
+          if (detail.action === "close") {
+            closeModal(modal);
+          } else if (detail.action === "open") {
+            openModal(modal);
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            const modal = document.querySelector(".modal.is-open");
+            if (modal) {
+              event.preventDefault();
+              closeModal(modal);
+            }
+          }
+        });
 
         document.body.addEventListener("toast", (event) => {
           const detail = getDetail(event) || {};

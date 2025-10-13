@@ -2,11 +2,15 @@ import json
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseNotAllowed
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 
 from .forms import ClientForm
 from .models import Client
+
+
+def _is_htmx(request):
+    return request.headers.get("HX-Request") == "true"
 
 
 def _render_client_form(request, form, client=None):
@@ -32,13 +36,26 @@ def client_list(request):
 @login_required
 def client_create(request):
     if request.method != "POST":
+        if not _is_htmx(request):
+            return redirect("clients:list")
         return _render_client_form(request, ClientForm())
 
     form = ClientForm(request.POST)
     if not form.is_valid():
+        if not _is_htmx(request):
+            return render(
+                request,
+                "clients/list.html",
+                {
+                    "clients": Client.objects.all(),
+                    "form": form,
+                },
+            )
         return _render_client_form(request, form)
 
     client = form.save()
+    if not _is_htmx(request):
+        return redirect("clients:list")
     form = ClientForm()
     form_html = render_to_string(
         "clients/partials/client_form.html",
@@ -69,6 +86,8 @@ def client_update(request, pk):
     client = get_object_or_404(Client, pk=pk)
 
     if request.method == "GET":
+        if not _is_htmx(request):
+            return redirect("clients:list")
         return _render_client_form(request, ClientForm(instance=client), client)
 
     if request.method != "POST":
@@ -76,17 +95,41 @@ def client_update(request, pk):
 
     form = ClientForm(request.POST, instance=client)
     if not form.is_valid():
+        if not _is_htmx(request):
+            return render(
+                request,
+                "clients/list.html",
+                {
+                    "clients": Client.objects.all(),
+                    "form": form,
+                },
+            )
         return _render_client_form(request, form, client)
 
     client = form.save()
+    if not _is_htmx(request):
+        return redirect("clients:list")
+
+    form_html = render_to_string(
+        "clients/partials/client_form.html",
+        {"form": ClientForm()},
+        request=request,
+    )
     row_html = render_to_string(
         "clients/partials/client_row.html",
         {"client": client},
         request=request,
     )
-    response = HttpResponse(row_html)
+    response = HttpResponse(form_html)
     response["HX-Trigger"] = json.dumps(
-        {"toast": {"message": "Cliente actualizado.", "type": "success"}}
+        {
+            "toast": {"message": "Cliente actualizado.", "type": "success"},
+            "listChanged": {
+                "action": "replace",
+                "selector": f"#client-{client.pk}",
+                "html": row_html,
+            },
+        }
     )
     return response
 
@@ -104,6 +147,9 @@ def client_delete(request, pk):
 
     client = get_object_or_404(Client, pk=pk)
     client.delete()
+    if not _is_htmx(request):
+        return redirect("clients:list")
+
     response = HttpResponse("")
     response["HX-Trigger"] = json.dumps(
         {"toast": {"message": "Cliente eliminado.", "type": "info"}}

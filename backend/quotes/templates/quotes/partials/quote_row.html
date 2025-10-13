@@ -8,8 +8,9 @@
     <button
       class="link"
       hx-get="{% url 'quotes:edit' quote.pk %}"
-      hx-target="#quote-form-container"
+      hx-target="#quote-modal-body"
       hx-swap="innerHTML"
+      data-modal-trigger="#quote-modal"
     >Editar</button>
     <button
       class="link"

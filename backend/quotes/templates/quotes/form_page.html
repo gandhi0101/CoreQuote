@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}{% if mode == 'edit' %}Editar cotización · CoreQuote{% else %}Nueva cotización · CoreQuote{% endif %}{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div>
+    <h1>{% if mode == 'edit' %}Editar cotización{% else %}Nueva cotización{% endif %}</h1>
+    <p class="muted">Completa la información y guarda los productos incluidos en la propuesta.</p>
+  </div>
+  <a class="link" href="{% url 'quotes:list' %}">← Volver al listado</a>
+</section>
+<section class="card">
+  <div id="quote-modal-body">
+    {% include "quotes/partials/quote_form.html" with form=form formset=formset mode=mode quote=quote %}
+  </div>
+</section>
+{% endblock %}

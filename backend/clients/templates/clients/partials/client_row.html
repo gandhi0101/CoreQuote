@@ -6,8 +6,8 @@
     <button
       class="link"
       hx-get="{% url 'clients:update' client.pk %}"
-      hx-target="#client-{{ client.pk }}"
-      hx-swap="outerHTML"
+      hx-target="#client-form-container"
+      hx-swap="innerHTML"
     >Editar</button>
     <button
       class="link danger"

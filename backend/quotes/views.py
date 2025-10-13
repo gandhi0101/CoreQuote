@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.contrib.auth.decorators import login_required
 from django.forms import formset_factory
 from django.http import HttpResponse, HttpResponseNotAllowed
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.db import transaction
 
@@ -14,14 +14,25 @@ from .models import Quote, QuoteItem
 QuoteItemFormSet = formset_factory(QuoteItemForm, extra=0, min_num=1, validate_min=True)
 
 
+def _is_htmx(request):
+    return request.headers.get("HX-Request") == "true"
+
+
 def _blank_item_formset():
     return QuoteItemFormSet(prefix="items", initial=[{}])
 
 
-def _render_quote_form(request, form, formset, mode="create", quote=None):
+def _render_quote_form(
+    request,
+    form,
+    formset,
+    mode="create",
+    quote=None,
+    template="quotes/partials/quote_form.html",
+):
     return render(
         request,
-        "quotes/partials/quote_form.html",
+        template,
         {
             "form": form,
             "formset": formset,
@@ -36,19 +47,20 @@ def quote_list(request):
     return render(
         request,
         "quotes/list.html",
-        {
-            "quotes": Quote.objects.select_related("client"),
-            "form": QuoteForm(),
-            "formset": _blank_item_formset(),
-            "mode": "create",
-        },
+        {"quotes": Quote.objects.select_related("client")},
     )
 
 
 @login_required
 def quote_create(request):
     if request.method == "GET":
-        return _render_quote_form(request, QuoteForm(), _blank_item_formset())
+        template = "quotes/partials/quote_form.html" if _is_htmx(request) else "quotes/form_page.html"
+        return _render_quote_form(
+            request,
+            QuoteForm(),
+            _blank_item_formset(),
+            template=template,
+        )
 
     if request.method != "POST":
         return HttpResponseNotAllowed(["GET", "POST"])
@@ -56,7 +68,8 @@ def quote_create(request):
     form = QuoteForm(request.POST)
     formset = QuoteItemFormSet(request.POST, prefix="items")
     if not (form.is_valid() and formset.is_valid()):
-        return _render_quote_form(request, form, formset)
+        template = "quotes/partials/quote_form.html" if _is_htmx(request) else "quotes/form_page.html"
+        return _render_quote_form(request, form, formset, template=template)
 
     with transaction.atomic():
         quote = form.save()
@@ -76,6 +89,9 @@ def quote_create(request):
             total += quote_item.subtotal
         quote.total = total
         quote.save(update_fields=["total"])
+
+    if not _is_htmx(request):
+        return redirect("quotes:list")
 
     fresh_form = QuoteForm()
     fresh_formset = _blank_item_formset()
@@ -98,6 +114,7 @@ def quote_create(request):
                 "target": "#quotes-table-body",
                 "html": row_html,
             },
+            "modal": {"action": "close", "target": "#quote-modal"},
         }
     )
     return response
@@ -117,7 +134,15 @@ def quote_edit(request, pk):
             for item in quote.items.select_related("item")
         ] or [{}]
         formset = QuoteItemFormSet(prefix="items", initial=initial)
-        return _render_quote_form(request, QuoteForm(instance=quote), formset, mode="edit", quote=quote)
+        template = "quotes/partials/quote_form.html" if _is_htmx(request) else "quotes/form_page.html"
+        return _render_quote_form(
+            request,
+            QuoteForm(instance=quote),
+            formset,
+            mode="edit",
+            quote=quote,
+            template=template,
+        )
 
     if request.method != "POST":
         return HttpResponseNotAllowed(["GET", "POST"])
@@ -125,7 +150,15 @@ def quote_edit(request, pk):
     form = QuoteForm(request.POST, instance=quote)
     formset = QuoteItemFormSet(request.POST, prefix="items")
     if not (form.is_valid() and formset.is_valid()):
-        return _render_quote_form(request, form, formset, mode="edit", quote=quote)
+        template = "quotes/partials/quote_form.html" if _is_htmx(request) else "quotes/form_page.html"
+        return _render_quote_form(
+            request,
+            form,
+            formset,
+            mode="edit",
+            quote=quote,
+            template=template,
+        )
 
     with transaction.atomic():
         quote = form.save()
@@ -147,6 +180,9 @@ def quote_edit(request, pk):
         quote.total = total
         quote.save(update_fields=["total"])
 
+    if not _is_htmx(request):
+        return redirect("quotes:list")
+
     form_html = render_to_string(
         "quotes/partials/quote_form.html",
         {"form": QuoteForm(), "formset": _blank_item_formset(), "mode": "create"},
@@ -166,6 +202,7 @@ def quote_edit(request, pk):
                 "selector": f"#quote-{quote.pk}",
                 "html": row_html,
             },
+            "modal": {"action": "close", "target": "#quote-modal"},
         }
     )
     return response
@@ -184,6 +221,9 @@ def quote_delete(request, pk):
 
     quote = get_object_or_404(Quote, pk=pk)
     quote.delete()
+    if not _is_htmx(request):
+        return redirect("quotes:list")
+
     response = HttpResponse("")
     response["HX-Trigger"] = json.dumps(
         {"toast": {"message": "Cotización eliminada.", "type": "info"}}

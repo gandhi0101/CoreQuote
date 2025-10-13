@@ -1,5 +1,8 @@
-<div class="quote-form" data-quote-form>
-  <h2>{% if mode == 'edit' %}Editar cotización{% else %}Nueva cotización{% endif %}</h2>
+<div class="quote-form" data-quote-form data-mode="{% if mode == 'edit' %}edit{% else %}create{% endif %}">
+  <div class="modal-header">
+    <h2 id="quote-modal-title">{% if mode == 'edit' %}Editar cotización{% else %}Nueva cotización{% endif %}</h2>
+    <a href="{% url 'quotes:list' %}" class="link" data-modal-dismiss>Cerrar</a>
+  </div>
   <form
     method="post"
     {% if mode == 'edit' and quote %}
@@ -9,7 +12,7 @@
       action="{% url 'quotes:create' %}"
       hx-post="{% url 'quotes:create' %}"
     {% endif %}
-    hx-target="#quote-form-container"
+    hx-target="#quote-modal-body"
     hx-swap="innerHTML"
     class="stacked-form"
   >
@@ -66,7 +69,7 @@
           type="button"
           class="secondary"
           hx-get="{% url 'quotes:create' %}"
-          hx-target="#quote-form-container"
+          hx-target="#quote-modal-body"
           hx-swap="innerHTML"
         >Cancelar edición</button>
       {% endif %}

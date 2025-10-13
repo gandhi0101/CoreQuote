@@ -9,39 +9,50 @@
     <p class="muted">Construye y administra propuestas listas para compartir.</p>
   </div>
 </section>
-<div class="two-column">
-  <section class="card" id="quote-form-card">
-    <div id="quote-form-container">
-      {% include "quotes/partials/quote_form.html" with form=form formset=formset mode='create' %}
-    </div>
-  </section>
-  <section class="card table-card">
-    <div class="table-header">
+<section class="card table-card">
+  <div class="table-header">
+    <div>
       <h2>Historial</h2>
+      <p class="muted">Consulta y gestiona tus cotizaciones recientes.</p>
     </div>
-    <div class="table-wrapper">
-      <table>
-        <thead>
+    <a
+      class="primary"
+      href="{% url 'quotes:create' %}"
+      hx-get="{% url 'quotes:create' %}"
+      hx-target="#quote-modal-body"
+      hx-swap="innerHTML"
+      data-modal-trigger="#quote-modal"
+    >Nueva cotización</a>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Cliente</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Creado</th>
+          <th class="actions">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="quotes-table-body">
+        {% for quote in quotes %}
+          {% include "quotes/partials/quote_row.html" with quote=quote %}
+        {% empty %}
           <tr>
-            <th>#</th>
-            <th>Cliente</th>
-            <th>Total</th>
-            <th>Estado</th>
-            <th>Creado</th>
-            <th class="actions">Acciones</th>
+            <td colspan="6" class="empty">Aún no has generado cotizaciones.</td>
           </tr>
-        </thead>
-        <tbody id="quotes-table-body">
-          {% for quote in quotes %}
-            {% include "quotes/partials/quote_row.html" with quote=quote %}
-          {% empty %}
-            <tr>
-              <td colspan="6" class="empty">Aún no has generado cotizaciones.</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </section>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div id="quote-modal" class="modal" aria-hidden="true">
+  <div class="modal__backdrop" data-modal-dismiss></div>
+  <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="quote-modal-title">
+    <div id="quote-modal-body" class="modal__body"></div>
+  </div>
 </div>
 {% endblock %}

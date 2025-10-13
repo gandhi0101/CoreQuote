@@ -7,8 +7,8 @@
     <button
       class="link"
       hx-get="{% url 'inventory:update' item.pk %}"
-      hx-target="#item-{{ item.pk }}"
-      hx-swap="outerHTML"
+      hx-target="#item-form-container"
+      hx-swap="innerHTML"
     >Editar</button>
     <button
       class="link danger"

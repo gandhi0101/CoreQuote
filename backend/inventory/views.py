@@ -2,11 +2,15 @@ import json
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseNotAllowed
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 
 from .forms import ItemForm
 from .models import Item
+
+
+def _is_htmx(request):
+    return request.headers.get("HX-Request") == "true"
 
 
 def _render_item_form(request, form, item=None):
@@ -32,13 +36,26 @@ def item_list(request):
 @login_required
 def item_create(request):
     if request.method != "POST":
+        if not _is_htmx(request):
+            return redirect("inventory:list")
         return _render_item_form(request, ItemForm())
 
     form = ItemForm(request.POST)
     if not form.is_valid():
+        if not _is_htmx(request):
+            return render(
+                request,
+                "inventory/list.html",
+                {
+                    "items": Item.objects.all(),
+                    "form": form,
+                },
+            )
         return _render_item_form(request, form)
 
     item = form.save()
+    if not _is_htmx(request):
+        return redirect("inventory:list")
     form = ItemForm()
     form_html = render_to_string(
         "inventory/partials/item_form.html",
@@ -69,6 +86,8 @@ def item_update(request, pk):
     item = get_object_or_404(Item, pk=pk)
 
     if request.method == "GET":
+        if not _is_htmx(request):
+            return redirect("inventory:list")
         return _render_item_form(request, ItemForm(instance=item), item)
 
     if request.method != "POST":
@@ -76,17 +95,41 @@ def item_update(request, pk):
 
     form = ItemForm(request.POST, instance=item)
     if not form.is_valid():
+        if not _is_htmx(request):
+            return render(
+                request,
+                "inventory/list.html",
+                {
+                    "items": Item.objects.all(),
+                    "form": form,
+                },
+            )
         return _render_item_form(request, form, item)
 
     item = form.save()
+    if not _is_htmx(request):
+        return redirect("inventory:list")
+
+    form_html = render_to_string(
+        "inventory/partials/item_form.html",
+        {"form": ItemForm()},
+        request=request,
+    )
     row_html = render_to_string(
         "inventory/partials/item_row.html",
         {"item": item},
         request=request,
     )
-    response = HttpResponse(row_html)
+    response = HttpResponse(form_html)
     response["HX-Trigger"] = json.dumps(
-        {"toast": {"message": "Producto actualizado.", "type": "success"}}
+        {
+            "toast": {"message": "Producto actualizado.", "type": "success"},
+            "listChanged": {
+                "action": "replace",
+                "selector": f"#item-{item.pk}",
+                "html": row_html,
+            },
+        }
     )
     return response
 
@@ -104,6 +147,9 @@ def item_delete(request, pk):
 
     item = get_object_or_404(Item, pk=pk)
     item.delete()
+    if not _is_htmx(request):
+        return redirect("inventory:list")
+
     response = HttpResponse("")
     response["HX-Trigger"] = json.dumps(
         {"toast": {"message": "Producto eliminado del inventario.", "type": "info"}}

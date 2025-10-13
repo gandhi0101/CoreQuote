@@ -6,8 +6,8 @@
     <button
       class="link"
       hx-get="{% url 'reports:update' report.pk %}"
-      hx-target="#report-{{ report.pk }}"
-      hx-swap="outerHTML"
+      hx-target="#report-form-container"
+      hx-swap="innerHTML"
     >Editar</button>
     <button
       class="link danger"
