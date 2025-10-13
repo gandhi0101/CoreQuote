@@ -21,9 +21,6 @@ RUN pip install -r /app/requirements.txt
 # copia el código
 COPY backend/ /app/
 EXPOSE 8000
-RUN python manage.py collectstatic --noinput || true
-RUN python manage.py migrate --noinput || true
-RUN python manage.py createsuperuser --noinput || true
 
 
 
