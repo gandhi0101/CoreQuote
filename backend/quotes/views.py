@@ -8,6 +8,7 @@ from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.db import transaction
+from django.utils import timezone
 from django.utils.formats import date_format
 
 from reportlab.lib import colors
@@ -291,8 +292,14 @@ def quote_pdf(request, pk):
     if quote.created_by:
         issued_by = quote.created_by.get_full_name() or quote.created_by.get_username()
 
+    issued_at = timezone.localtime(quote.created_at)
+    issued_at_display = "{} {}".format(
+        date_format(issued_at, "DATE_FORMAT", use_l10n=True),
+        date_format(issued_at, "TIME_FORMAT", use_l10n=True),
+    ).strip()
+
     metadata = [
-        ["Folio", f"#{quote.pk}", "Fecha", date_format(quote.created_at, "DATETIME_FORMAT", use_l10n=True)],
+        ["Folio", f"#{quote.pk}", "Fecha", issued_at_display],
         ["Cliente", quote.client.name, "Correo", quote.client.email or "—"],
         ["Generada por", issued_by, "Estado", quote.get_status_display()],
     ]

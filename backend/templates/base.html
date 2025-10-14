@@ -1329,6 +1329,113 @@
           return template.content;
         };
 
+        const enhanceQuoteForms = (root) => {
+          const scope =
+            root && typeof root.querySelectorAll === "function" ? root : document;
+          const wrappers = scope.querySelectorAll("[data-quote-form]");
+
+          wrappers.forEach((wrapper) => {
+            if (!(wrapper instanceof HTMLElement)) return;
+            if (wrapper.dataset.quoteFormEnhanced === "true") return;
+
+            const itemsContainer = wrapper.querySelector("[data-items-container]");
+            const addButton = wrapper.querySelector("[data-add-item]");
+            const totalFormsInput = wrapper.querySelector(
+              'input[name="items-TOTAL_FORMS"]'
+            );
+            const template = wrapper.querySelector("template[data-item-template]");
+
+            if (!itemsContainer || !addButton || !totalFormsInput || !template) {
+              wrapper.dataset.quoteFormEnhanced = "true";
+              return;
+            }
+
+            wrapper.dataset.quoteFormEnhanced = "true";
+
+            const getRows = () =>
+              Array.from(wrapper.querySelectorAll("[data-item-row]"));
+
+            function addItem() {
+              if (!template) return;
+              const index = parseInt(totalFormsInput.value || "0", 10);
+              const html = template.innerHTML.replace(/__prefix__/g, index);
+              const fragment = document.createElement("template");
+              fragment.innerHTML = html.trim();
+              const node = fragment.content.firstElementChild;
+              if (!node) return;
+              const extras = fragment.content.querySelectorAll("tr.full-error");
+              itemsContainer.appendChild(node);
+              extras.forEach((extra) => itemsContainer.appendChild(extra));
+              renumber();
+            }
+
+            function renumber() {
+              const rows = getRows();
+              rows.forEach((row, index) => {
+                row.dataset.index = String(index);
+                row.querySelectorAll("input, select, label").forEach((element) => {
+                  if (element.name) {
+                    element.name = element.name.replace(
+                      /items-\d+-/,
+                      `items-${index}-`
+                    );
+                  }
+                  if (element.id) {
+                    element.id = element.id.replace(
+                      /items-\d+-/,
+                      `items-${index}-`
+                    );
+                  }
+                  const forAttr = element.getAttribute?.("for");
+                  if (forAttr) {
+                    element.setAttribute(
+                      "for",
+                      forAttr.replace(/items-\d+-/, `items-${index}-`)
+                    );
+                  }
+                });
+              });
+              totalFormsInput.value = String(rows.length);
+              if (!rows.length && template) {
+                addItem();
+              }
+            }
+
+            function removeItem(button) {
+              const row = button.closest?.("[data-item-row]");
+              if (!row) return;
+
+              const extras = [];
+              let sibling = row.nextElementSibling;
+              while (sibling && sibling.classList.contains("full-error")) {
+                extras.push(sibling);
+                sibling = sibling.nextElementSibling;
+              }
+
+              row.remove();
+              extras.forEach((extra) => extra.remove());
+              renumber();
+            }
+
+            wrapper.addEventListener("click", (event) => {
+              const removeButton = event.target.closest?.("[data-remove-item]");
+              if (removeButton) {
+                event.preventDefault();
+                removeItem(removeButton);
+                return;
+              }
+
+              const addTrigger = event.target.closest?.("[data-add-item]");
+              if (addTrigger && addTrigger === addButton) {
+                event.preventDefault();
+                addItem();
+              }
+            });
+
+            renumber();
+          });
+        };
+
         const showConfirmation = (element, message) => {
           const title = element.dataset.confirmTitle || "¿Estás seguro?";
           const icon = element.dataset.confirmIcon || "warning";
@@ -1502,6 +1609,7 @@
 
         document.body.addEventListener("htmx:afterSwap", (event) => {
           if (!(event.target instanceof HTMLElement)) return;
+          enhanceQuoteForms(event.target);
           if (event.target.classList.contains("modal__body")) {
             const modal = findModal(event.target);
             if (modal) {
@@ -1584,6 +1692,8 @@
             form.reset();
           }
         });
+
+        enhanceQuoteForms(document);
       })();
     </script>
     {% block extra_body %}{% endblock %}
