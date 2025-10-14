@@ -1,5 +1,6 @@
 import json
 from decimal import Decimal
+from io import BytesIO
 
 from django.contrib.auth.decorators import login_required
 from django.forms import formset_factory
@@ -7,6 +8,10 @@ from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.db import transaction
+from django.utils.formats import date_format
+
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 from .forms import QuoteForm, QuoteItemForm
 from .models import Quote, QuoteItem
@@ -212,6 +217,84 @@ def quote_edit(request, pk):
 def quote_row(request, pk):
     quote = get_object_or_404(Quote.objects.select_related("client"), pk=pk)
     return render(request, "quotes/partials/quote_row.html", {"quote": quote})
+
+
+@login_required
+def quote_pdf(request, pk):
+    quote = get_object_or_404(
+        Quote.objects.select_related("client").prefetch_related("items__item"), pk=pk
+    )
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=letter)
+    _, height = letter
+    margin = 50
+    y = height - margin
+
+    pdf.setTitle(f"Cotización #{quote.pk}")
+
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(margin, y, "Cotización")
+    pdf.setFont("Helvetica", 12)
+    y -= 24
+    pdf.drawString(margin, y, f"Folio: #{quote.pk}")
+    y -= 18
+    pdf.drawString(
+        margin,
+        y,
+        f"Fecha: {date_format(quote.created_at, 'DATETIME_FORMAT', use_l10n=True)}",
+    )
+    y -= 18
+    pdf.drawString(margin, y, f"Cliente: {quote.client.name}")
+    if quote.client.email:
+        y -= 18
+        pdf.drawString(margin, y, f"Email: {quote.client.email}")
+
+    y -= 30
+
+    def draw_table_header(current_y):
+        pdf.setFont("Helvetica-Bold", 12)
+        pdf.drawString(margin, current_y, "Concepto")
+        pdf.drawString(margin + 260, current_y, "Cantidad")
+        pdf.drawString(margin + 340, current_y, "Precio unitario")
+        pdf.drawString(margin + 460, current_y, "Subtotal")
+        pdf.setFont("Helvetica", 11)
+        return current_y - 18
+
+    def ensure_space(current_y, *, with_header=True):
+        if current_y < margin + 40:
+            pdf.showPage()
+            new_y = height - margin
+            if with_header:
+                return draw_table_header(new_y)
+            pdf.setFont("Helvetica", 11)
+            return new_y
+        return current_y
+
+    y = draw_table_header(y)
+
+    for item in quote.items.all():
+        y = ensure_space(y)
+        pdf.drawString(margin, y, str(item.item))
+        pdf.drawString(margin + 260, y, str(item.quantity))
+        pdf.drawString(margin + 340, y, f"${format(item.unit_price, '.2f')}")
+        pdf.drawString(margin + 460, y, f"${format(item.subtotal, '.2f')}")
+        y -= 18
+
+    y = ensure_space(y - 12, with_header=False)
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(margin, y, f"Total: ${format(quote.total, '.2f')}")
+    y -= 18
+    pdf.setFont("Helvetica", 10)
+    pdf.drawString(margin, y, f"Estado: {quote.get_status_display()}")
+
+    pdf.save()
+
+    buffer.seek(0)
+    filename = f"cotizacion-{quote.pk}.pdf"
+    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
 
 
 @login_required

@@ -12,12 +12,12 @@
       hx-swap="innerHTML"
       data-modal-trigger="#quote-modal"
     >Editar</button>
-    <button
+    <a
       class="link"
-      type="button"
-      data-disabled
-      title="La generación de PDF estará disponible próximamente"
-    >Generar PDF</button>
+      href="{% url 'quotes:pdf' quote.pk %}"
+      target="_blank"
+      rel="noopener"
+    >Generar PDF</a>
     <button
       class="link danger"
       hx-delete="{% url 'quotes:delete' quote.pk %}"
