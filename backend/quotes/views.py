@@ -10,8 +10,11 @@ from django.template.loader import render_to_string
 from django.db import transaction
 from django.utils.formats import date_format
 
+from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from .forms import QuoteForm, QuoteItemForm
 from .models import Quote, QuoteItem
@@ -23,8 +26,8 @@ def _is_htmx(request):
     return request.headers.get("HX-Request") == "true"
 
 
-def _blank_item_formset():
-    return QuoteItemFormSet(prefix="items", initial=[{}])
+def _blank_item_formset(user):
+    return QuoteItemFormSet(prefix="items", initial=[{}], form_kwargs={"user": user})
 
 
 def _render_quote_form(
@@ -52,7 +55,11 @@ def quote_list(request):
     return render(
         request,
         "quotes/list.html",
-        {"quotes": Quote.objects.select_related("client")},
+        {
+            "quotes": Quote.objects.filter(created_by=request.user)
+            .select_related("client")
+            .order_by("-created_at"),
+        },
     )
 
 
@@ -62,22 +69,24 @@ def quote_create(request):
         template = "quotes/partials/quote_form.html" if _is_htmx(request) else "quotes/form_page.html"
         return _render_quote_form(
             request,
-            QuoteForm(),
-            _blank_item_formset(),
+            QuoteForm(user=request.user),
+            _blank_item_formset(request.user),
             template=template,
         )
 
     if request.method != "POST":
         return HttpResponseNotAllowed(["GET", "POST"])
 
-    form = QuoteForm(request.POST)
-    formset = QuoteItemFormSet(request.POST, prefix="items")
+    form = QuoteForm(request.POST, user=request.user)
+    formset = QuoteItemFormSet(request.POST, prefix="items", form_kwargs={"user": request.user})
     if not (form.is_valid() and formset.is_valid()):
         template = "quotes/partials/quote_form.html" if _is_htmx(request) else "quotes/form_page.html"
         return _render_quote_form(request, form, formset, template=template)
 
     with transaction.atomic():
-        quote = form.save()
+        quote = form.save(commit=False)
+        quote.created_by = request.user
+        quote.save()
         total = Decimal("0")
         for item_form in formset:
             item = item_form.cleaned_data.get("item")
@@ -98,8 +107,8 @@ def quote_create(request):
     if not _is_htmx(request):
         return redirect("quotes:list")
 
-    fresh_form = QuoteForm()
-    fresh_formset = _blank_item_formset()
+    fresh_form = QuoteForm(user=request.user)
+    fresh_formset = _blank_item_formset(request.user)
     form_html = render_to_string(
         "quotes/partials/quote_form.html",
         {"form": fresh_form, "formset": fresh_formset, "mode": "create"},
@@ -127,7 +136,10 @@ def quote_create(request):
 
 @login_required
 def quote_edit(request, pk):
-    quote = get_object_or_404(Quote.objects.select_related("client"), pk=pk)
+    quote = get_object_or_404(
+        Quote.objects.select_related("client").filter(created_by=request.user),
+        pk=pk,
+    )
 
     if request.method == "GET":
         initial = [
@@ -138,11 +150,13 @@ def quote_edit(request, pk):
             }
             for item in quote.items.select_related("item")
         ] or [{}]
-        formset = QuoteItemFormSet(prefix="items", initial=initial)
+        formset = QuoteItemFormSet(
+            prefix="items", initial=initial, form_kwargs={"user": request.user}
+        )
         template = "quotes/partials/quote_form.html" if _is_htmx(request) else "quotes/form_page.html"
         return _render_quote_form(
             request,
-            QuoteForm(instance=quote),
+            QuoteForm(instance=quote, user=request.user),
             formset,
             mode="edit",
             quote=quote,
@@ -152,8 +166,10 @@ def quote_edit(request, pk):
     if request.method != "POST":
         return HttpResponseNotAllowed(["GET", "POST"])
 
-    form = QuoteForm(request.POST, instance=quote)
-    formset = QuoteItemFormSet(request.POST, prefix="items")
+    form = QuoteForm(request.POST, instance=quote, user=request.user)
+    formset = QuoteItemFormSet(
+        request.POST, prefix="items", form_kwargs={"user": request.user}
+    )
     if not (form.is_valid() and formset.is_valid()):
         template = "quotes/partials/quote_form.html" if _is_htmx(request) else "quotes/form_page.html"
         return _render_quote_form(
@@ -190,7 +206,11 @@ def quote_edit(request, pk):
 
     form_html = render_to_string(
         "quotes/partials/quote_form.html",
-        {"form": QuoteForm(), "formset": _blank_item_formset(), "mode": "create"},
+        {
+            "form": QuoteForm(user=request.user),
+            "formset": _blank_item_formset(request.user),
+            "mode": "create",
+        },
         request=request,
     )
     row_html = render_to_string(
@@ -215,80 +235,171 @@ def quote_edit(request, pk):
 
 @login_required
 def quote_row(request, pk):
-    quote = get_object_or_404(Quote.objects.select_related("client"), pk=pk)
+    quote = get_object_or_404(
+        Quote.objects.select_related("client").filter(created_by=request.user), pk=pk
+    )
     return render(request, "quotes/partials/quote_row.html", {"quote": quote})
 
 
 @login_required
 def quote_pdf(request, pk):
     quote = get_object_or_404(
-        Quote.objects.select_related("client").prefetch_related("items__item"), pk=pk
+        Quote.objects.select_related("client", "created_by")
+        .prefetch_related("items__item")
+        .filter(created_by=request.user),
+        pk=pk,
     )
 
     buffer = BytesIO()
-    pdf = canvas.Canvas(buffer, pagesize=letter)
-    _, height = letter
-    margin = 50
-    y = height - margin
-
-    pdf.setTitle(f"Cotización #{quote.pk}")
-
-    pdf.setFont("Helvetica-Bold", 16)
-    pdf.drawString(margin, y, "Cotización")
-    pdf.setFont("Helvetica", 12)
-    y -= 24
-    pdf.drawString(margin, y, f"Folio: #{quote.pk}")
-    y -= 18
-    pdf.drawString(
-        margin,
-        y,
-        f"Fecha: {date_format(quote.created_at, 'DATETIME_FORMAT', use_l10n=True)}",
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        leftMargin=0.9 * inch,
+        rightMargin=0.9 * inch,
+        topMargin=0.9 * inch,
+        bottomMargin=0.8 * inch,
+        title=f"Cotización #{quote.pk}",
     )
-    y -= 18
-    pdf.drawString(margin, y, f"Cliente: {quote.client.name}")
-    if quote.client.email:
-        y -= 18
-        pdf.drawString(margin, y, f"Email: {quote.client.email}")
 
-    y -= 30
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        "QuoteTitle",
+        parent=styles["Heading1"],
+        fontName="Helvetica-Bold",
+        fontSize=18,
+        textColor=colors.HexColor("#0f172a"),
+        spaceAfter=12,
+    )
+    normal_style = ParagraphStyle(
+        "QuoteBody",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=11,
+        leading=14,
+        textColor=colors.HexColor("#1f2937"),
+    )
+    small_style = ParagraphStyle(
+        "QuoteSmall",
+        parent=normal_style,
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor("#475569"),
+        spaceBefore=12,
+    )
 
-    def draw_table_header(current_y):
-        pdf.setFont("Helvetica-Bold", 12)
-        pdf.drawString(margin, current_y, "Concepto")
-        pdf.drawString(margin + 260, current_y, "Cantidad")
-        pdf.drawString(margin + 340, current_y, "Precio unitario")
-        pdf.drawString(margin + 460, current_y, "Subtotal")
-        pdf.setFont("Helvetica", 11)
-        return current_y - 18
+    issued_by = "N/A"
+    if quote.created_by:
+        issued_by = quote.created_by.get_full_name() or quote.created_by.get_username()
 
-    def ensure_space(current_y, *, with_header=True):
-        if current_y < margin + 40:
-            pdf.showPage()
-            new_y = height - margin
-            if with_header:
-                return draw_table_header(new_y)
-            pdf.setFont("Helvetica", 11)
-            return new_y
-        return current_y
+    metadata = [
+        ["Folio", f"#{quote.pk}", "Fecha", date_format(quote.created_at, "DATETIME_FORMAT", use_l10n=True)],
+        ["Cliente", quote.client.name, "Correo", quote.client.email or "—"],
+        ["Generada por", issued_by, "Estado", quote.get_status_display()],
+    ]
 
-    y = draw_table_header(y)
+    metadata_table = Table(
+        metadata,
+        colWidths=[document.width * 0.18, document.width * 0.32] * 2,
+        hAlign="LEFT",
+    )
+    metadata_table.setStyle(
+        TableStyle(
+            [
+                ("ROWBACKGROUNDS", (0, 0), (-1, -1), [colors.HexColor("#f8fafc"), colors.white]),
+                ("BOX", (0, 0), (-1, -1), 0.75, colors.HexColor("#cbd5f5")),
+                ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#dbeafe")),
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+                ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),
+                ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#1f2937")),
+                ("ALIGN", (1, 0), (-1, -1), "LEFT"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
+    )
 
+    item_rows = [
+        ["Concepto", "Cantidad", "Precio unitario", "Subtotal"],
+    ]
     for item in quote.items.all():
-        y = ensure_space(y)
-        pdf.drawString(margin, y, str(item.item))
-        pdf.drawString(margin + 260, y, str(item.quantity))
-        pdf.drawString(margin + 340, y, f"${format(item.unit_price, '.2f')}")
-        pdf.drawString(margin + 460, y, f"${format(item.subtotal, '.2f')}")
-        y -= 18
+        item_rows.append(
+            [
+                str(item.item),
+                str(item.quantity),
+                f"${item.unit_price:.2f}",
+                f"${item.subtotal:.2f}",
+            ]
+        )
 
-    y = ensure_space(y - 12, with_header=False)
-    pdf.setFont("Helvetica-Bold", 12)
-    pdf.drawString(margin, y, f"Total: ${format(quote.total, '.2f')}")
-    y -= 18
-    pdf.setFont("Helvetica", 10)
-    pdf.drawString(margin, y, f"Estado: {quote.get_status_display()}")
+    if len(item_rows) == 1:
+        item_rows.append(["Sin conceptos", "—", "—", "—"])
 
-    pdf.save()
+    items_table = Table(
+        item_rows,
+        colWidths=[document.width * 0.42, document.width * 0.16, document.width * 0.2, document.width * 0.22],
+        hAlign="LEFT",
+    )
+    items_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1d4ed8")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                ("ALIGN", (1, 1), (-2, -1), "CENTER"),
+                ("ALIGN", (-1, 1), (-1, -1), "RIGHT"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, 0), 10),
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 10),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#94a3b8")),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8fafc")]),
+            ]
+        )
+    )
+
+    total_table = Table(
+        [["Total", f"${quote.total:.2f}"]],
+        colWidths=[document.width * 0.78, document.width * 0.22],
+        hAlign="LEFT",
+    )
+    total_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f1f5f9")),
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica-Bold"),
+                ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#0f172a")),
+                ("ALIGN", (1, 0), (1, 0), "RIGHT"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+                ("TOPPADDING", (0, 0), (-1, -1), 8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+            ]
+        )
+    )
+
+    footer = Paragraph(
+        "Esta cotización fue generada con CoreQuote. Gracias por su preferencia.",
+        small_style,
+    )
+
+    document.build(
+        [
+            Paragraph("Cotización", title_style),
+            Paragraph("Resumen de la cotización", normal_style),
+            Spacer(1, 0.15 * inch),
+            metadata_table,
+            Spacer(1, 0.3 * inch),
+            items_table,
+            Spacer(1, 0.2 * inch),
+            total_table,
+            footer,
+        ]
+    )
 
     buffer.seek(0)
     filename = f"cotizacion-{quote.pk}.pdf"
@@ -302,7 +413,7 @@ def quote_delete(request, pk):
     if request.method not in {"POST", "DELETE"}:
         return HttpResponseNotAllowed(["POST", "DELETE"])
 
-    quote = get_object_or_404(Quote, pk=pk)
+    quote = get_object_or_404(Quote.objects.filter(created_by=request.user), pk=pk)
     quote.delete()
     if not _is_htmx(request):
         return redirect("quotes:list")
