@@ -15,6 +15,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
+from reportlab.lib.utils import ImageReader
 from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from accounts.models import CompanyProfile
@@ -329,8 +330,26 @@ def quote_pdf(request, pk):
         if logo_bytes:
             try:
                 logo_buffer = BytesIO(logo_bytes)
-                logo_buffer.seek(0)
-                company_logo = Image(logo_buffer, width=1.6 * inch)
+                logo_reader = ImageReader(logo_buffer)
+                logo_width, logo_height = logo_reader.getSize()
+                if logo_width and logo_height:
+                    max_logo_width = 1.6 * inch
+                    max_logo_height = 1.6 * inch
+                    scale = min(
+                        max_logo_width / logo_width,
+                        max_logo_height / logo_height,
+                        1,
+                    )
+                    resized_width = logo_width * scale
+                    resized_height = logo_height * scale
+                else:
+                    resized_width = resized_height = 1.6 * inch
+
+                company_logo = Image(
+                    BytesIO(logo_bytes),
+                    width=resized_width,
+                    height=resized_height,
+                )
                 company_logo.hAlign = "LEFT"
             except Exception:
                 company_logo = None
