@@ -176,7 +176,9 @@
       input[type="text"],
       input[type="password"],
       input[type="email"],
-      select {
+      select,
+      .form-input,
+      textarea.form-input {
         padding: 0.65rem 0.85rem;
         border-radius: 0.65rem;
         border: 1px solid rgba(15, 94, 240, 0.25);
@@ -187,10 +189,17 @@
       input[type="text"]:focus,
       input[type="password"]:focus,
       input[type="email"]:focus,
-      select:focus {
+      select:focus,
+      .form-input:focus,
+      textarea.form-input:focus {
         outline: none;
         border-color: var(--brand);
         box-shadow: 0 0 0 3px rgba(15, 94, 240, 0.15);
+      }
+
+      input.file-input {
+        padding: 0.45rem 0;
+        border: none;
       }
 
       .layout {

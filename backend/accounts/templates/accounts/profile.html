@@ -1,24 +1,121 @@
 {% extends "base.html" %}
 
-{% block title %}Mis datos | CoreQuote{% endblock %}
+{% block title %}Mi perfil fiscal | CoreQuote{% endblock %}
 
 {% block content %}
-  <section class="card" style="max-width: 640px;">
-    <h1>Mis datos</h1>
-    <p style="color: var(--muted);">Estos son los datos básicos asociados a tu cuenta.</p>
-    <dl style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 2rem;">
+  <section class="card" style="max-width: 880px;">
+    <h1>Identidad fiscal y branding</h1>
+    <p style="color: var(--muted); max-width: 60ch;">
+      Configura aquí los datos que se mostrarán en tus cotizaciones: razón social, RFC, datos de contacto y
+      logotipo. Solo tendrás que subirlos una vez y se aplicarán automáticamente en cada PDF.
+    </p>
+
+    {% if messages %}
+      <ul style="list-style: none; margin: 1.5rem 0; padding: 0;">
+        {% for message in messages %}
+          <li style="padding: 0.85rem 1rem; border-radius: 0.75rem; background: rgba(15, 94, 240, 0.1); color: var(--brand); font-weight: 600;">
+            {{ message }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <div style="display: grid; grid-template-columns: minmax(220px, 280px) minmax(260px, 1fr); gap: 2rem; align-items: start; margin-top: 2rem;">
       <div>
-        <dt style="font-weight: 600; color: var(--muted);">Nombre de usuario</dt>
-        <dd style="margin: 0.35rem 0 0;">{{ request.user.username }}</dd>
+        <h2 style="font-size: 1rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Resumen de la cuenta</h2>
+        <dl style="margin: 1rem 0 0; display: grid; gap: 1rem;">
+          <div>
+            <dt style="font-weight: 600; color: var(--muted);">Nombre de usuario</dt>
+            <dd style="margin: 0.35rem 0 0;">{{ request.user.username }}</dd>
+          </div>
+          <div>
+            <dt style="font-weight: 600; color: var(--muted);">Nombre completo</dt>
+            <dd style="margin: 0.35rem 0 0;">{{ request.user.get_full_name|default:"No especificado" }}</dd>
+          </div>
+          <div>
+            <dt style="font-weight: 600; color: var(--muted);">Correo electrónico</dt>
+            <dd style="margin: 0.35rem 0 0;">{{ request.user.email|default:"No especificado" }}</dd>
+          </div>
+        </dl>
+
+        <div style="margin-top: 2.5rem;">
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--muted);">Logotipo actual</h3>
+          {% if profile.logo %}
+            <div style="margin-top: 0.75rem; padding: 1rem; border: 1px dashed rgba(15, 94, 240, 0.35); border-radius: 0.85rem; background: rgba(15, 94, 240, 0.04);">
+              <img src="{{ profile.logo.url }}" alt="Logo" style="max-width: 100%; height: auto; display: block; margin: 0 auto;" />
+            </div>
+          {% else %}
+            <p style="margin-top: 0.75rem; color: var(--muted);">Aún no has cargado un logotipo.</p>
+          {% endif %}
+          <p style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted);">
+            Sugerencia: usa un archivo PNG o SVG ligero (&lt; 1&nbsp;MB) para tiempos de carga rápidos en Railway.
+          </p>
+        </div>
       </div>
-      <div>
-        <dt style="font-weight: 600; color: var(--muted);">Nombre completo</dt>
-        <dd style="margin: 0.35rem 0 0;">{{ request.user.get_full_name|default:"No especificado" }}</dd>
-      </div>
-      <div>
-        <dt style="font-weight: 600; color: var(--muted);">Correo electrónico</dt>
-        <dd style="margin: 0.35rem 0 0;">{{ request.user.email|default:"No especificado" }}</dd>
-      </div>
-    </dl>
+
+      <form method="post" enctype="multipart/form-data" style="display: grid; gap: 1.25rem;">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div style="padding: 0.75rem 1rem; border-radius: 0.75rem; background: rgba(220, 38, 38, 0.12); color: #b91c1c;">
+            {{ form.non_field_errors|striptags }}
+          </div>
+        {% endif %}
+
+        <div>
+          <label for="{{ form.legal_name.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Razón social</label>
+          {{ form.legal_name }}
+          <small style="display: block; margin-top: 0.3rem; color: var(--muted);">Nombre que se mostrará como emisor.</small>
+          {% if form.legal_name.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ form.legal_name.errors|striptags }}</small>
+          {% endif %}
+        </div>
+
+        <div style="display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+          <div>
+            <label for="{{ form.tax_id.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">RFC</label>
+            {{ form.tax_id }}
+            {% if form.tax_id.errors %}
+              <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ form.tax_id.errors|striptags }}</small>
+            {% endif %}
+          </div>
+          <div>
+            <label for="{{ form.contact_phone.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Teléfono</label>
+            {{ form.contact_phone }}
+            {% if form.contact_phone.errors %}
+              <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ form.contact_phone.errors|striptags }}</small>
+            {% endif %}
+          </div>
+        </div>
+
+        <div>
+          <label for="{{ form.tax_address.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Domicilio fiscal</label>
+          {{ form.tax_address }}
+          {% if form.tax_address.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ form.tax_address.errors|striptags }}</small>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.contact_email.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Correo de contacto</label>
+          {{ form.contact_email }}
+          {% if form.contact_email.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ form.contact_email.errors|striptags }}</small>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ form.logo.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Logotipo</label>
+          {{ form.logo }}
+          {% if form.logo.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ form.logo.errors|striptags }}</small>
+          {% endif %}
+        </div>
+
+        <button type="submit" style="justify-self: start; padding: 0.7rem 1.5rem; border-radius: 999px; border: none; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;">
+          Guardar cambios
+        </button>
+      </form>
+    </div>
   </section>
 {% endblock %}
