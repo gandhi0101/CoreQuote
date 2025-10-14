@@ -69,4 +69,10 @@ El script `backend/start.sh` ya corre `migrate` y `collectstatic` antes de inici
 | Error de hosts (`DisallowedHost`) | Falta el dominio en `ALLOWED_HOSTS` | Agrega el dominio de Railway en `ALLOWED_HOSTS` y `CSRF_TRUSTED_ORIGINS`. |
 | Migraciones sin aplicar | Alguna migración falló por datos o permisos | Revisa los logs y, si es necesario, ejecuta `python manage.py migrate` manualmente desde la consola del deployment. |
 
+## 8. Logos y datos fiscales por usuario
+
+- Cada usuario puede cargar su logotipo y datos fiscales desde **Mis datos → Identidad fiscal y branding**. La información se guarda en la carpeta `backend/media/` bajo `user-assets/<id>/logo.png` y se inserta automáticamente en los PDF.
+- En Railway (plan gratuito) la forma más simple de conservar estos archivos entre despliegues es habilitar un [Volume](https://docs.railway.com/reference/volumes) y montarlo en `/workspace/CoreQuote/backend/media` para el servicio web. Así, los logos permanecen disponibles sin volver a subirlos.
+- Si prefieres delegar el almacenamiento a un servicio gratuito externo, puedes apuntar `DEFAULT_FILE_STORAGE` a proveedores como [Cloudinary](https://cloudinary.com/) o [Google Cloud Storage](https://cloud.google.com/storage) (tienen capas sin costo) usando `django-storages`. Solo necesitarías añadir la dependencia, credenciales por variable de entorno y actualizar la configuración.
+
 Con esto tu despliegue debería completarse correctamente en Railway. Si necesitas personalizar la configuración (por ejemplo usar Redis, enviar correos, etc.), añade los servicios en Railway y exporta sus variables de entorno siguiendo el mismo patrón.

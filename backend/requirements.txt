@@ -5,3 +5,4 @@ django-environ
 whitenoise
 django-safedelete
 reportlab
+Pillow

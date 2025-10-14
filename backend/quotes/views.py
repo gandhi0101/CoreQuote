@@ -15,8 +15,9 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from accounts.models import CompanyProfile
 from .forms import QuoteForm, QuoteItemForm
 from .models import Quote, QuoteItem
 
@@ -287,10 +288,85 @@ def quote_pdf(request, pk):
         textColor=colors.HexColor("#475569"),
         spaceBefore=12,
     )
+    company_name_style = ParagraphStyle(
+        "CompanyName",
+        parent=normal_style,
+        fontName="Helvetica-Bold",
+        fontSize=13,
+        leading=16,
+        textColor=colors.HexColor("#0f172a"),
+    )
+    company_detail_style = ParagraphStyle(
+        "CompanyDetail",
+        parent=normal_style,
+        fontSize=10,
+        leading=13,
+        textColor=colors.HexColor("#1f2937"),
+    )
 
     issued_by = "N/A"
     if quote.created_by:
         issued_by = quote.created_by.get_full_name() or quote.created_by.get_username()
+
+    try:
+        company_profile = quote.created_by.company_profile
+    except CompanyProfile.DoesNotExist:
+        company_profile = None
+    company_logo = None
+    if company_profile and company_profile.logo:
+        try:
+            logo_buffer = BytesIO(company_profile.logo.read())
+            logo_buffer.seek(0)
+            company_profile.logo.close()
+            company_logo = Image(logo_buffer, width=1.6 * inch, preserveAspectRatio=True)
+            company_logo.hAlign = "LEFT"
+        except Exception:
+            company_logo = None
+
+    header_elements = []
+    if company_profile or company_logo:
+        display_name = (company_profile.legal_name if company_profile and company_profile.legal_name else issued_by)
+        detail_lines = []
+        if company_profile:
+            if company_profile.tax_id:
+                detail_lines.append(f"<b>RFC:</b> {company_profile.tax_id}")
+            contact_email = company_profile.contact_email or quote.created_by.email
+            if contact_email:
+                detail_lines.append(f"<b>Correo:</b> {contact_email}")
+            if company_profile.contact_phone:
+                detail_lines.append(f"<b>Teléfono:</b> {company_profile.contact_phone}")
+            if company_profile.tax_address:
+                tax_address = company_profile.tax_address.replace("\n", "<br/>")
+                detail_lines.append(f"<b>Domicilio fiscal:</b> {tax_address}")
+
+        text_flowables = [Paragraph(display_name, company_name_style)]
+        if detail_lines:
+            text_flowables.append(
+                Paragraph("<br/>".join(detail_lines), company_detail_style)
+            )
+
+        if company_logo:
+            header_table = Table(
+                [[company_logo, text_flowables]],
+                colWidths=[1.7 * inch, document.width - 1.7 * inch],
+                hAlign="LEFT",
+            )
+            header_table.setStyle(
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                        ("TOPPADDING", (0, 0), (-1, -1), 0),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                    ]
+                )
+            )
+            header_elements.append(header_table)
+        else:
+            header_elements.extend(text_flowables)
+
+        header_elements.append(Spacer(1, 0.25 * inch))
 
     issued_at = timezone.localtime(quote.created_at)
     issued_at_display = "{} {}".format(
@@ -304,30 +380,62 @@ def quote_pdf(request, pk):
         ["Generada por", issued_by, "Estado", quote.get_status_display()],
     ]
 
+    address_row_index = None
+    if company_profile:
+        metadata.append(
+            [
+                "Razón social",
+                company_profile.legal_name or issued_by,
+                "RFC",
+                company_profile.tax_id or "—",
+            ]
+        )
+        metadata.append(
+            [
+                "Correo emisor",
+                company_profile.contact_email
+                or quote.created_by.email
+                or "—",
+                "Teléfono",
+                company_profile.contact_phone or "—",
+            ]
+        )
+        if company_profile.tax_address:
+            address_row_index = len(metadata)
+            metadata.append(
+                [
+                    "Domicilio fiscal",
+                    company_profile.tax_address.replace("\n", ", "),
+                    "",
+                    "",
+                ]
+            )
+
     metadata_table = Table(
         metadata,
         colWidths=[document.width * 0.18, document.width * 0.32] * 2,
         hAlign="LEFT",
     )
-    metadata_table.setStyle(
-        TableStyle(
-            [
-                ("ROWBACKGROUNDS", (0, 0), (-1, -1), [colors.HexColor("#f8fafc"), colors.white]),
-                ("BOX", (0, 0), (-1, -1), 0.75, colors.HexColor("#cbd5f5")),
-                ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#dbeafe")),
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
-                ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),
-                ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#1f2937")),
-                ("ALIGN", (1, 0), (-1, -1), "LEFT"),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 8),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-            ]
-        )
-    )
+    metadata_style = [
+        ("ROWBACKGROUNDS", (0, 0), (-1, -1), [colors.HexColor("#f8fafc"), colors.white]),
+        ("BOX", (0, 0), (-1, -1), 0.75, colors.HexColor("#cbd5f5")),
+        ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#dbeafe")),
+        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+        ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),
+        ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#1f2937")),
+        ("ALIGN", (1, 0), (-1, -1), "LEFT"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]
+    if address_row_index is not None:
+        metadata_style.append(("SPAN", (1, address_row_index), (-1, address_row_index)))
+        metadata_style.append(("VALIGN", (1, address_row_index), (-1, address_row_index), "TOP"))
+
+    metadata_table.setStyle(TableStyle(metadata_style))
 
     item_rows = [
         ["Concepto", "Cantidad", "Precio unitario", "Subtotal"],
@@ -396,6 +504,7 @@ def quote_pdf(request, pk):
 
     document.build(
         [
+            *header_elements,
             Paragraph("Cotización", title_style),
             Paragraph("Resumen de la cotización", normal_style),
             Spacer(1, 0.15 * inch),
