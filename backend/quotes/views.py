@@ -314,14 +314,26 @@ def quote_pdf(request, pk):
         company_profile = None
     company_logo = None
     if company_profile and company_profile.logo:
+        logo_bytes = None
         try:
-            logo_buffer = BytesIO(company_profile.logo.read())
-            logo_buffer.seek(0)
-            company_profile.logo.close()
-            company_logo = Image(logo_buffer, width=1.6 * inch, preserveAspectRatio=True)
-            company_logo.hAlign = "LEFT"
+            company_profile.logo.open("rb")
+            logo_bytes = company_profile.logo.read()
         except Exception:
-            company_logo = None
+            logo_bytes = None
+        finally:
+            try:
+                company_profile.logo.close()
+            except Exception:
+                pass
+
+        if logo_bytes:
+            try:
+                logo_buffer = BytesIO(logo_bytes)
+                logo_buffer.seek(0)
+                company_logo = Image(logo_buffer, width=1.6 * inch)
+                company_logo.hAlign = "LEFT"
+            except Exception:
+                company_logo = None
 
     header_elements = []
     if company_profile or company_logo:
@@ -380,37 +392,6 @@ def quote_pdf(request, pk):
         ["Generada por", issued_by, "Estado", quote.get_status_display()],
     ]
 
-    address_row_index = None
-    if company_profile:
-        metadata.append(
-            [
-                "Razón social",
-                company_profile.legal_name or issued_by,
-                "RFC",
-                company_profile.tax_id or "—",
-            ]
-        )
-        metadata.append(
-            [
-                "Correo emisor",
-                company_profile.contact_email
-                or quote.created_by.email
-                or "—",
-                "Teléfono",
-                company_profile.contact_phone or "—",
-            ]
-        )
-        if company_profile.tax_address:
-            address_row_index = len(metadata)
-            metadata.append(
-                [
-                    "Domicilio fiscal",
-                    company_profile.tax_address.replace("\n", ", "),
-                    "",
-                    "",
-                ]
-            )
-
     metadata_table = Table(
         metadata,
         colWidths=[document.width * 0.18, document.width * 0.32] * 2,
@@ -431,10 +412,6 @@ def quote_pdf(request, pk):
         ("TOPPADDING", (0, 0), (-1, -1), 6),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
     ]
-    if address_row_index is not None:
-        metadata_style.append(("SPAN", (1, address_row_index), (-1, address_row_index)))
-        metadata_style.append(("VALIGN", (1, address_row_index), (-1, address_row_index), "TOP"))
-
     metadata_table.setStyle(TableStyle(metadata_style))
 
     item_rows = [
