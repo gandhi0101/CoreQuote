@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from clients.models import Client
 from inventory.models import Item
@@ -19,6 +20,13 @@ class Quote(SafeDeleteModel):
         (STATUS_LOST, "Perdida"),
     ]
 
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="quotes",
+        blank=True,
+        null=True,
+    )
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="quotes")
     created_at = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)

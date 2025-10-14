@@ -4,3 +4,5 @@ psycopg[binary]>=3.2
 django-environ
 whitenoise
 django-safedelete
+reportlab
+Pillow

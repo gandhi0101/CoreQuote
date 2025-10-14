@@ -97,6 +97,10 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 if not DEBUG:
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# --- Media uploads
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 # --- Otros
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

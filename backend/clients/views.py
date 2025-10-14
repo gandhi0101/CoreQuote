@@ -27,7 +27,7 @@ def client_list(request):
         request,
         "clients/list.html",
         {
-            "clients": Client.objects.all(),
+            "clients": Client.objects.filter(owner=request.user).order_by("-created_at"),
             "form": ClientForm(),
         },
     )
@@ -47,13 +47,15 @@ def client_create(request):
                 request,
                 "clients/list.html",
                 {
-                    "clients": Client.objects.all(),
+                    "clients": Client.objects.filter(owner=request.user).order_by("-created_at"),
                     "form": form,
                 },
             )
         return _render_client_form(request, form)
 
-    client = form.save()
+    client = form.save(commit=False)
+    client.owner = request.user
+    client.save()
     if not _is_htmx(request):
         return redirect("clients:list")
     form = ClientForm()
@@ -83,7 +85,7 @@ def client_create(request):
 
 @login_required
 def client_update(request, pk):
-    client = get_object_or_404(Client, pk=pk)
+    client = get_object_or_404(Client.objects.filter(owner=request.user), pk=pk)
 
     if request.method == "GET":
         if not _is_htmx(request):
@@ -100,7 +102,7 @@ def client_update(request, pk):
                 request,
                 "clients/list.html",
                 {
-                    "clients": Client.objects.all(),
+                    "clients": Client.objects.filter(owner=request.user).order_by("-created_at"),
                     "form": form,
                 },
             )
@@ -136,7 +138,7 @@ def client_update(request, pk):
 
 @login_required
 def client_row(request, pk):
-    client = get_object_or_404(Client, pk=pk)
+    client = get_object_or_404(Client.objects.filter(owner=request.user), pk=pk)
     return render(request, "clients/partials/client_row.html", {"client": client})
 
 
@@ -145,7 +147,7 @@ def client_delete(request, pk):
     if request.method not in {"POST", "DELETE"}:
         return HttpResponseNotAllowed(["POST", "DELETE"])
 
-    client = get_object_or_404(Client, pk=pk)
+    client = get_object_or_404(Client.objects.filter(owner=request.user), pk=pk)
     client.delete()
     if not _is_htmx(request):
         return redirect("clients:list")

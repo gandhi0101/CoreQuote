@@ -27,7 +27,7 @@ def item_list(request):
         request,
         "inventory/list.html",
         {
-            "items": Item.objects.all(),
+            "items": Item.objects.filter(owner=request.user).order_by("-created_at"),
             "form": ItemForm(),
         },
     )
@@ -47,13 +47,15 @@ def item_create(request):
                 request,
                 "inventory/list.html",
                 {
-                    "items": Item.objects.all(),
+                    "items": Item.objects.filter(owner=request.user).order_by("-created_at"),
                     "form": form,
                 },
             )
         return _render_item_form(request, form)
 
-    item = form.save()
+    item = form.save(commit=False)
+    item.owner = request.user
+    item.save()
     if not _is_htmx(request):
         return redirect("inventory:list")
     form = ItemForm()
@@ -83,7 +85,7 @@ def item_create(request):
 
 @login_required
 def item_update(request, pk):
-    item = get_object_or_404(Item, pk=pk)
+    item = get_object_or_404(Item.objects.filter(owner=request.user), pk=pk)
 
     if request.method == "GET":
         if not _is_htmx(request):
@@ -100,7 +102,7 @@ def item_update(request, pk):
                 request,
                 "inventory/list.html",
                 {
-                    "items": Item.objects.all(),
+                    "items": Item.objects.filter(owner=request.user).order_by("-created_at"),
                     "form": form,
                 },
             )
@@ -136,7 +138,7 @@ def item_update(request, pk):
 
 @login_required
 def item_row(request, pk):
-    item = get_object_or_404(Item, pk=pk)
+    item = get_object_or_404(Item.objects.filter(owner=request.user), pk=pk)
     return render(request, "inventory/partials/item_row.html", {"item": item})
 
 
@@ -145,7 +147,7 @@ def item_delete(request, pk):
     if request.method not in {"POST", "DELETE"}:
         return HttpResponseNotAllowed(["POST", "DELETE"])
 
-    item = get_object_or_404(Item, pk=pk)
+    item = get_object_or_404(Item.objects.filter(owner=request.user), pk=pk)
     item.delete()
     if not _is_htmx(request):
         return redirect("inventory:list")
