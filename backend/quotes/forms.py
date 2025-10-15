@@ -1,3 +1,5 @@
+import json
+
 from django import forms
 
 from clients.models import Client
@@ -34,3 +36,10 @@ class QuoteItemForm(forms.Form):
         if user is not None:
             queryset = Item.objects.filter(owner=user).order_by("name")
         self.fields["item"].queryset = queryset
+        cost_map = {str(item.pk): format(item.cost, "f") for item in queryset}
+        self.fields["item"].widget.attrs.update(
+            {
+                "data-cost-map": json.dumps(cost_map),
+                "data-margin": "0.60",
+            }
+        )
