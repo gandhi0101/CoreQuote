@@ -52,24 +52,24 @@
             <div class="metric-card__header">
               <span class="metric-label">Valor de material</span>
             </div>
-            <p class="metric-value">${{ metrics.inventory_value|floatformat:2 }}</p>
+            <p class="metric-value" title="{{ metrics.inventory_value_detail }}">{{ metrics.inventory_value_display }}</p>
             <p class="metric-caption">Costo estimado del inventario actual</p>
           </article>
 
           <article class="metric-card metric-card--highlight">
             <div class="metric-card__header">
               <span class="metric-label">Ganancia estimada</span>
-              {% with tooltip_revenue=metrics.total_revenue|floatformat:2 tooltip_cost=metrics.total_cost|floatformat:2 tooltip_margin=metrics.margin_percentage|floatformat:1 %}
+              {% with tooltip_profit=metrics.total_profit_detail tooltip_revenue=metrics.total_revenue_detail tooltip_cost=metrics.total_cost_detail tooltip_margin=metrics.margin_percentage|floatformat:1 %}
                 <span
                   class="metric-tooltip"
                   tabindex="0"
                   aria-label="Detalle de ganancias"
-                  data-tooltip="Valor cotizado: ${{ tooltip_revenue }}&#10;Costo estimado: ${{ tooltip_cost }}&#10;Margen promedio: {{ tooltip_margin }}%"
-                  title="Valor cotizado: ${{ tooltip_revenue }}&#10;Costo estimado: ${{ tooltip_cost }}&#10;Margen promedio: {{ tooltip_margin }}%"
+                  data-tooltip="Ganancia estimada: {{ tooltip_profit }}&#10;Valor cotizado: {{ tooltip_revenue }}&#10;Costo estimado: {{ tooltip_cost }}&#10;Margen promedio: {{ tooltip_margin }}%"
+                  title="Ganancia estimada: {{ tooltip_profit }}&#10;Valor cotizado: {{ tooltip_revenue }}&#10;Costo estimado: {{ tooltip_cost }}&#10;Margen promedio: {{ tooltip_margin }}%"
                 >?</span>
               {% endwith %}
             </div>
-            <p class="metric-value">${{ metrics.total_profit|floatformat:2 }}</p>
+            <p class="metric-value" title="{{ metrics.total_profit_detail }}">{{ metrics.total_profit_display }}</p>
             <p class="metric-caption">Margen promedio de {{ metrics.margin_percentage|floatformat:1 }}%</p>
           </article>
         </div>
