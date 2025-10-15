@@ -15,6 +15,11 @@
         --muted: #64748b;
       }
 
+      html {
+        width: 100%;
+        overflow-x: hidden;
+      }
+
       * {
         box-sizing: border-box;
       }
@@ -27,6 +32,7 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
+        overflow-x: hidden;
       }
 
       a {
@@ -635,6 +641,17 @@
         gap: 0.35rem;
       }
 
+      [data-price-hint] {
+        display: block;
+        margin-top: 0.35rem;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+
+      [data-price-hint][hidden] {
+        display: none;
+      }
+
       .form-row {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -896,6 +913,216 @@
         line-height: 1.6;
         color: var(--muted);
         font-size: 1.05rem;
+      }
+
+      .dashboard-insights {
+        margin-top: 2.5rem;
+        display: grid;
+        gap: 2rem;
+      }
+
+      .metrics-grid {
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .metric-card {
+        background: var(--surface);
+        border-radius: 1.2rem;
+        padding: 1.4rem 1.6rem;
+        box-shadow: 0 22px 50px rgba(15, 94, 240, 0.08);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .metric-card--highlight {
+        border: 1px solid rgba(34, 197, 94, 0.35);
+        box-shadow: 0 26px 60px rgba(34, 197, 94, 0.2);
+      }
+
+      .metric-card__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .metric-label {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+
+      .metric-value {
+        font-size: clamp(1.8rem, 4vw, 2.4rem);
+        font-weight: 700;
+        margin: 0;
+        color: var(--text);
+      }
+
+      .metric-caption {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .metric-tooltip {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.6rem;
+        height: 1.6rem;
+        border-radius: 999px;
+        background: rgba(15, 94, 240, 0.12);
+        color: var(--brand);
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+      }
+
+      .metric-tooltip:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(15, 94, 240, 0.25);
+      }
+
+      .metric-tooltip::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: calc(100% + 0.6rem);
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--surface);
+        color: var(--text);
+        border-radius: 0.9rem;
+        padding: 0.75rem 1rem;
+        box-shadow: 0 22px 55px rgba(15, 94, 240, 0.2);
+        min-width: 220px;
+        max-width: 280px;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        white-space: pre-line;
+        z-index: 15;
+      }
+
+      .metric-tooltip::before {
+        content: "";
+        position: absolute;
+        bottom: calc(100% + 0.3rem);
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: var(--surface);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+
+      .metric-tooltip:hover::after,
+      .metric-tooltip:focus::after,
+      .metric-tooltip:hover::before,
+      .metric-tooltip:focus::before {
+        opacity: 1;
+      }
+
+      .inventory-status {
+        display: grid;
+        gap: 1.5rem;
+      }
+
+      .status-card {
+        background: var(--surface);
+        border-radius: 1.2rem;
+        padding: 1.6rem;
+        box-shadow: 0 22px 50px rgba(15, 94, 240, 0.08);
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .status-card.warning {
+        border-left: 4px solid #f59e0b;
+      }
+
+      .status-card.success {
+        border-left: 4px solid #22c55e;
+      }
+
+      .status-card__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .status-card__header h2 {
+        margin: 0;
+        font-size: 1.2rem;
+      }
+
+      .status-card p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .status-card ul {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: var(--muted);
+      }
+
+      .status-card li {
+        margin-bottom: 0.35rem;
+      }
+
+      .status-card li:last-child {
+        margin-bottom: 0;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.2rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: rgba(15, 94, 240, 0.12);
+        color: var(--brand);
+      }
+
+      .status-card.warning .status-pill {
+        background: rgba(245, 158, 11, 0.15);
+        color: #c2410c;
+      }
+
+      .status-card.success .status-pill {
+        background: rgba(34, 197, 94, 0.18);
+        color: #15803d;
+      }
+
+      .empty-state {
+        background: var(--surface);
+        border-radius: 1.2rem;
+        padding: 2rem;
+        box-shadow: 0 22px 50px rgba(15, 94, 240, 0.08);
+        text-align: center;
+        display: grid;
+        gap: 1rem;
+      }
+
+      .empty-state h2 {
+        margin: 0;
+      }
+
+      .empty-state p {
+        margin: 0;
+        color: var(--muted);
       }
 
       .primary-action {
@@ -1360,6 +1587,72 @@
             const getRows = () =>
               Array.from(wrapper.querySelectorAll("[data-item-row]"));
 
+            const parseCostMap = (select) => {
+              if (!select) return {};
+              try {
+                const raw = select.dataset.costMap || "{}";
+                return JSON.parse(raw);
+              } catch (error) {
+                console.error("No se pudo leer el mapa de costos", error);
+                return {};
+              }
+            };
+
+            const getMargin = (select) => {
+              if (!select) return 0.6;
+              const margin = Number.parseFloat(select.dataset.margin);
+              return Number.isFinite(margin) ? margin : 0.6;
+            };
+
+            const formatCurrency = (value) => {
+              if (!Number.isFinite(value)) return "";
+              try {
+                return new Intl.NumberFormat("es-MX", {
+                  style: "currency",
+                  currency: "MXN",
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(value);
+              } catch (error) {
+                return value.toFixed(2);
+              }
+            };
+
+            const updatePriceHint = (row) => {
+              if (!row) return;
+              const select = row.querySelector("select");
+              const hint = row.querySelector("[data-price-hint]");
+              const priceInput = row.querySelector('input[name$="-unit_price"]');
+              if (!select || !hint) return;
+
+              const margin = getMargin(select);
+              const costMap = parseCostMap(select);
+              const cost = Number.parseFloat(costMap?.[select.value]);
+              const marginPercent = Math.round(margin * 100);
+              const defaultMessage = `Selecciona un producto para ver un precio sugerido (utilidad del ${marginPercent}%).`;
+
+              if (!Number.isFinite(cost) || cost <= 0) {
+                hint.textContent = defaultMessage;
+                hint.hidden = false;
+                if (priceInput) {
+                  priceInput.removeAttribute("placeholder");
+                }
+                return;
+              }
+
+              const suggested = cost * (1 + margin);
+              const formatted = formatCurrency(suggested);
+              hint.textContent = `Sugerido: ${formatted} (utilidad del ${marginPercent}%)`;
+              hint.hidden = false;
+              if (priceInput && !priceInput.value) {
+                priceInput.placeholder = formatted;
+              }
+            };
+
+            const refreshHints = () => {
+              getRows().forEach((row) => updatePriceHint(row));
+            };
+
             function addItem() {
               if (!template) return;
               const index = parseInt(totalFormsInput.value || "0", 10);
@@ -1404,6 +1697,7 @@
               if (!rows.length && template) {
                 addItem();
               }
+              refreshHints();
             }
 
             function removeItem(button) {
@@ -1435,6 +1729,13 @@
                 event.preventDefault();
                 addItem();
               }
+            });
+
+            wrapper.addEventListener("change", (event) => {
+              const select = event.target.closest?.("select");
+              if (!select) return;
+              const row = select.closest?.("[data-item-row]");
+              updatePriceHint(row);
             });
 
             renumber();

@@ -19,6 +19,7 @@
     {% if form.unit_price.errors %}
       <p class="error">{{ form.unit_price.errors|join:', ' }}</p>
     {% endif %}
+    <span class="form-hint" data-price-hint hidden></span>
   </td>
   <td class="field remove">
     <button type="button" class="link danger" data-remove-item>Quitar</button>

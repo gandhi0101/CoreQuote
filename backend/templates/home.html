@@ -16,14 +16,112 @@
       cuenta. Si aún no tienes acceso, ponte en contacto con el administrador de
       CoreQuote.
     </p>
-    
+
       <a class="primary-action" href="{% url 'login' %}">Iniciar sesión</a>
     {% else %}
-    <h1>Bienvenido de nuevo, {{ user.get_full_name|default:user.username }}!</h1>  
-    
-      <p>Usa el menú de navegación para acceder a las diferentes secciones de la aplicación.</p>
-      <p>Si necesitas ayuda, consulta la documentación o contacta al soporte.</p>
-      <p>Mas adelante aqui se te mostraran las metricas de tus productos y cotizaciones</p>
+    <h1>Bienvenido de nuevo, {{ user.get_full_name|default:user.username }}!</h1>
+
+      <p>
+        Este es un resumen rápido del estado de tu inventario y de las cotizaciones
+        registradas. Usa los accesos del menú para actualizar productos o generar
+        nuevas propuestas.
+      </p>
     {% endif %}
   </section>
+  {% if user.is_authenticated %}
+    <section class="dashboard-insights">
+      {% if metrics.has_data %}
+        <div class="metrics-grid">
+          <article class="metric-card">
+            <div class="metric-card__header">
+              <span class="metric-label">Productos activos</span>
+            </div>
+            <p class="metric-value">{{ metrics.total_products }}</p>
+            <p class="metric-caption">SKU disponibles en el inventario</p>
+          </article>
+
+          <article class="metric-card">
+            <div class="metric-card__header">
+              <span class="metric-label">Unidades en inventario</span>
+            </div>
+            <p class="metric-value">{{ metrics.total_stock }}</p>
+            <p class="metric-caption">Existencias totales registradas</p>
+          </article>
+
+          <article class="metric-card">
+            <div class="metric-card__header">
+              <span class="metric-label">Valor de material</span>
+            </div>
+            <p class="metric-value" title="{{ metrics.inventory_value_detail }}">{{ metrics.inventory_value_display }}</p>
+            <p class="metric-caption">Costo estimado del inventario actual</p>
+          </article>
+
+          <article class="metric-card metric-card--highlight">
+            <div class="metric-card__header">
+              <span class="metric-label">Ganancia estimada</span>
+              {% with tooltip_profit=metrics.total_profit_detail tooltip_revenue=metrics.total_revenue_detail tooltip_cost=metrics.total_cost_detail tooltip_margin=metrics.margin_percentage|floatformat:1 %}
+                <span
+                  class="metric-tooltip"
+                  tabindex="0"
+                  aria-label="Detalle de ganancias"
+                  data-tooltip="Ganancia estimada: {{ tooltip_profit }}&#10;Valor cotizado: {{ tooltip_revenue }}&#10;Costo estimado: {{ tooltip_cost }}&#10;Margen promedio: {{ tooltip_margin }}%"
+                  title="Ganancia estimada: {{ tooltip_profit }}&#10;Valor cotizado: {{ tooltip_revenue }}&#10;Costo estimado: {{ tooltip_cost }}&#10;Margen promedio: {{ tooltip_margin }}%"
+                >?</span>
+              {% endwith %}
+            </div>
+            <p class="metric-value" title="{{ metrics.total_profit_detail }}">{{ metrics.total_profit_display }}</p>
+            <p class="metric-caption">Margen promedio de {{ metrics.margin_percentage|floatformat:1 }}%</p>
+          </article>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <h2>Aún no tienes datos para mostrar</h2>
+          <p>
+            Empieza registrando tus productos para calcular el valor del inventario y
+            generar cotizaciones con márgenes sugeridos.
+          </p>
+          <a class="primary-action" href="{% url 'inventory:create' %}">Registrar mi primer producto</a>
+        </div>
+      {% endif %}
+
+      <div class="inventory-status">
+        {% if metrics.low_stock_total %}
+          <article class="status-card warning">
+            <div class="status-card__header">
+              <h2>Productos con stock bajo</h2>
+              <span class="status-pill">{{ metrics.low_stock_total }}</span>
+            </div>
+            <p>
+              {% if metrics.low_stock_total == 1 %}
+                1 producto está por debajo del umbral de {{ metrics.low_stock_threshold }} unidades.
+              {% else %}
+                {{ metrics.low_stock_total }} productos están por debajo del umbral de {{ metrics.low_stock_threshold }} unidades.
+              {% endif %}
+            </p>
+            <ul>
+              {% for item in metrics.low_stock_preview %}
+                <li><strong>{{ item.name }}</strong> — {{ item.stock }} unidades en inventario</li>
+              {% endfor %}
+              {% if metrics.extra_low_stock %}
+                <li>… y {{ metrics.extra_low_stock }} más.</li>
+              {% endif %}
+            </ul>
+            <a class="link" href="{% url 'inventory:list' %}">Revisar inventario completo</a>
+          </article>
+        {% elif metrics.total_products %}
+          <article class="status-card success">
+            <div class="status-card__header">
+              <h2>Inventario al día</h2>
+              <span class="status-pill">OK</span>
+            </div>
+            <p>
+              Todos tus productos superan el umbral de {{ metrics.low_stock_threshold }} unidades. Mantén tus
+              existencias actualizadas para evitar quiebres de stock.
+            </p>
+            <a class="link" href="{% url 'inventory:list' %}">Ver inventario</a>
+          </article>
+        {% endif %}
+      </div>
+    </section>
+  {% endif %}
 {% endblock %}
