@@ -220,7 +220,7 @@
 
         <div>
           <label for="{{ account_form.first_name.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Nombre</label>
-          {{ account_form.first_name.as_widget(attrs={'data-modal-focus': 'true'}) }}
+          {{ account_form.first_name }}
           {% if account_form.first_name.errors %}
             <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ account_form.first_name.errors|striptags }}</small>
           {% endif %}
@@ -285,7 +285,7 @@
 
         <div>
           <label for="{{ password_form.old_password.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Contraseña actual</label>
-          {{ password_form.old_password.as_widget(attrs={'data-modal-focus': 'true'}) }}
+          {{ password_form.old_password }}
           {% if password_form.old_password.errors %}
             <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ password_form.old_password.errors|striptags }}</small>
           {% endif %}

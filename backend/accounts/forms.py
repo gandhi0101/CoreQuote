@@ -40,6 +40,10 @@ class UserAccountForm(BaseStyledForm, forms.ModelForm):
             "email": forms.EmailInput(),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["first_name"].widget.attrs.setdefault("data-modal-focus", "true")
+
 
 class StyledPasswordChangeForm(BaseStyledForm, PasswordChangeForm):
     """Password change form with consistent styling."""
@@ -53,6 +57,7 @@ class StyledPasswordChangeForm(BaseStyledForm, PasswordChangeForm):
         self.fields["old_password"].widget.attrs["autocomplete"] = "current-password"
         self.fields["new_password1"].widget.attrs["autocomplete"] = "new-password"
         self.fields["new_password2"].widget.attrs["autocomplete"] = "new-password"
+        self.fields["old_password"].widget.attrs.setdefault("data-modal-focus", "true")
 
 
 class CompanyProfileForm(BaseStyledForm, forms.ModelForm):
