@@ -48,6 +48,10 @@
       color: var(--brand);
     }
 
+    .modal-backdrop[hidden] {
+      display: none !important;
+    }
+
     body.modal-open {
       overflow: hidden;
     }
@@ -95,14 +99,7 @@
               data-modal-target="account-modal"
               style="padding: 0.6rem 1.35rem; border-radius: 999px; border: none; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;"
             >
-              Editar datos personales
-            </button>
-            <button
-              type="button"
-              data-modal-target="password-modal"
-              style="padding: 0.6rem 1.35rem; border-radius: 999px; border: 1px solid rgba(15, 94, 240, 0.35); background: #fff; color: var(--brand); font-weight: 600; cursor: pointer;"
-            >
-              Cambiar contraseña
+              Gestionar cuenta
             </button>
           </div>
         </section>
@@ -196,6 +193,7 @@
     aria-modal="true"
     aria-labelledby="account-modal-title"
     {% if account_form.errors or account_form.non_field_errors %}data-open-on-load="true"{% endif %}
+    {% if account_form.errors or account_form.non_field_errors %}data-force-account-form="true"{% endif %}
     hidden
   >
     <div class="modal-dialog">
@@ -205,10 +203,43 @@
       <div>
         <h2 id="account-modal-title" style="font-size: 1.25rem; font-weight: 700; margin: 0;">Editar datos personales</h2>
         <p style="margin: 0.75rem 0 0; color: var(--muted);">
-          Actualiza tu nombre y correo de contacto. Tu nombre de usuario se mantiene sin cambios para conservar el acceso.
+          Consulta tus datos actuales y decide si deseas actualizar tu información o cambiar tu contraseña.
         </p>
       </div>
-      <form method="post" style="display: grid; gap: 1rem;">
+      <div data-account-step="overview" {% if account_form.errors or account_form.non_field_errors %}hidden{% endif %}>
+        <dl style="margin: 1rem 0 1.5rem; display: grid; gap: 0.85rem;">
+          <div>
+            <dt style="font-weight: 600; color: var(--muted);">Nombre de usuario</dt>
+            <dd style="margin: 0.35rem 0 0;">{{ request.user.username }}</dd>
+          </div>
+          <div>
+            <dt style="font-weight: 600; color: var(--muted);">Nombre completo</dt>
+            <dd style="margin: 0.35rem 0 0;">{{ request.user.get_full_name|default:"No especificado" }}</dd>
+          </div>
+          <div>
+            <dt style="font-weight: 600; color: var(--muted);">Correo electrónico</dt>
+            <dd style="margin: 0.35rem 0 0;">{{ request.user.email|default:"No especificado" }}</dd>
+          </div>
+        </dl>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end;">
+          <button
+            type="button"
+            data-account-edit
+            data-modal-focus
+            style="padding: 0.65rem 1.3rem; border-radius: 999px; border: none; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;"
+          >
+            Editar datos
+          </button>
+          <button
+            type="button"
+            data-modal-switch="password-modal"
+            style="padding: 0.65rem 1.3rem; border-radius: 999px; border: 1px solid rgba(15, 94, 240, 0.35); background: #fff; color: var(--brand); font-weight: 600; cursor: pointer;"
+          >
+            Cambiar contraseña
+          </button>
+        </div>
+      </div>
+      <form method="post" style="display: grid; gap: 1rem;" data-account-step="form" {% if not account_form.errors and not account_form.non_field_errors %}hidden{% endif %}>
         {% csrf_token %}
         <input type="hidden" name="action" value="update-account" />
 
@@ -242,9 +273,13 @@
           {% endif %}
         </div>
 
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
-          <button type="button" data-modal-dismiss style="padding: 0.65rem 1.3rem; border-radius: 999px; border: 1px solid rgba(15, 23, 42, 0.12); background: #fff; font-weight: 600; color: var(--muted); cursor: pointer;">
-            Cancelar
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; flex-wrap: wrap;">
+          <button
+            type="button"
+            data-account-cancel
+            style="padding: 0.65rem 1.3rem; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.35); background: #fff; font-weight: 600; color: var(--muted); cursor: pointer;"
+          >
+            Volver
           </button>
           <button type="submit" style="padding: 0.65rem 1.4rem; border-radius: 999px; border: none; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;">
             Guardar cambios
@@ -328,17 +363,39 @@
       const openClass = "modal-open";
       let activeTrigger = null;
 
-      const closeModal = (modal) => {
+      const findFocusable = (container) => {
+        if (!container) {
+          return null;
+        }
+        const selectors =
+          "[data-modal-focus], button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])";
+        const candidates = container.querySelectorAll(selectors);
+        for (const element of candidates) {
+          if (element.closest("[hidden]")) {
+            continue;
+          }
+          if (element.getAttribute("aria-hidden") === "true") {
+            continue;
+          }
+          return element;
+        }
+        return null;
+      };
+
+      const closeModal = (modal, { restoreFocus = true, preserveTrigger = false } = {}) => {
         if (!modal) {
           return;
         }
         modal.classList.remove("is-open");
         modal.setAttribute("hidden", "");
+        modal.dispatchEvent(new CustomEvent("modal:close"));
         if (!document.querySelector("[data-modal].is-open")) {
           body.classList.remove(openClass);
         }
-        if (activeTrigger) {
+        if (restoreFocus && activeTrigger) {
           activeTrigger.focus();
+        }
+        if (!preserveTrigger) {
           activeTrigger = null;
         }
       };
@@ -347,15 +404,86 @@
         if (!modal) {
           return;
         }
-        activeTrigger = trigger;
+        if (trigger) {
+          activeTrigger = trigger;
+        }
         modal.removeAttribute("hidden");
         modal.classList.add("is-open");
         body.classList.add(openClass);
-        const focusTarget = modal.querySelector("[data-modal-focus]") || modal.querySelector("input, button, select, textarea");
+        modal.dispatchEvent(new CustomEvent("modal:open"));
+        const focusTarget = findFocusable(modal);
         if (focusTarget) {
           focusTarget.focus();
         }
       };
+
+      const accountModal = document.querySelector('[data-modal="account-modal"]');
+      if (accountModal) {
+        const overviewStep = accountModal.querySelector('[data-account-step="overview"]');
+        const formStep = accountModal.querySelector('[data-account-step="form"]');
+        const editButton = accountModal.querySelector('[data-account-edit]');
+        const cancelButton = accountModal.querySelector('[data-account-cancel]');
+        const switchButtons = accountModal.querySelectorAll('[data-modal-switch]');
+
+        const setStep = (step) => {
+          if (!overviewStep || !formStep) {
+            return;
+          }
+          if (step === "form") {
+            overviewStep.setAttribute("hidden", "");
+            formStep.removeAttribute("hidden");
+          } else {
+            formStep.setAttribute("hidden", "");
+            overviewStep.removeAttribute("hidden");
+          }
+        };
+
+        const resetStep = () => {
+          if (accountModal.dataset.forceAccountForm === "true") {
+            setStep("form");
+          } else {
+            setStep("overview");
+          }
+        };
+
+        resetStep();
+
+        if (editButton) {
+          editButton.addEventListener("click", () => {
+            setStep("form");
+            const focusTarget = findFocusable(formStep);
+            if (focusTarget) {
+              focusTarget.focus();
+            }
+          });
+        }
+
+        if (cancelButton) {
+          cancelButton.addEventListener("click", () => {
+            setStep("overview");
+            const focusTarget = findFocusable(overviewStep) || findFocusable(accountModal);
+            if (focusTarget) {
+              focusTarget.focus();
+            }
+          });
+        }
+
+        switchButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            const targetModal = document.querySelector(`[data-modal="${button.dataset.modalSwitch}"]`);
+            if (!targetModal) {
+              return;
+            }
+            const sourceTrigger = activeTrigger;
+            closeModal(accountModal, { restoreFocus: false, preserveTrigger: true });
+            openModal(targetModal, sourceTrigger || button);
+          });
+        });
+
+        accountModal.addEventListener("modal:close", () => {
+          resetStep();
+        });
+      }
 
       document.querySelectorAll("[data-modal-target]").forEach((button) => {
         button.addEventListener("click", () => {
