@@ -3,6 +3,56 @@
 {% block title %}Mi perfil fiscal | CoreQuote{% endblock %}
 
 {% block content %}
+  <style>
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      z-index: 90;
+    }
+
+    .modal-dialog {
+      position: relative;
+      width: min(480px, 100%);
+      background: #ffffff;
+      border-radius: 1rem;
+      padding: clamp(1.75rem, 2vw + 1.25rem, 2.5rem);
+      box-shadow: 0 18px 55px rgba(15, 23, 42, 0.22);
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 0.85rem;
+      right: 0.85rem;
+      border: none;
+      background: rgba(148, 163, 184, 0.25);
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: #0f172a;
+      cursor: pointer;
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      background: rgba(15, 94, 240, 0.12);
+      color: var(--brand);
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+  </style>
+
   <section class="card" style="max-width: 880px;">
     <h1>Identidad fiscal y branding</h1>
     <p style="color: var(--muted); max-width: 60ch;">
@@ -38,6 +88,23 @@
               <dd style="margin: 0.35rem 0 0;">{{ request.user.email|default:"No especificado" }}</dd>
             </div>
           </dl>
+
+          <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <button
+              type="button"
+              data-modal-target="account-modal"
+              style="padding: 0.6rem 1.35rem; border-radius: 999px; border: none; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;"
+            >
+              Editar datos personales
+            </button>
+            <button
+              type="button"
+              data-modal-target="password-modal"
+              style="padding: 0.6rem 1.35rem; border-radius: 999px; border: 1px solid rgba(15, 94, 240, 0.35); background: #fff; color: var(--brand); font-weight: 600; cursor: pointer;"
+            >
+              Cambiar contraseña
+            </button>
+          </div>
         </section>
 
         <section>
@@ -52,99 +119,6 @@
           <p style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted);">
             Sugerencia: usa un archivo PNG o SVG ligero (&lt; 1&nbsp;MB) para tiempos de carga rápidos.
           </p>
-        </section>
-
-        <section>
-          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Información personal</h3>
-          <p style="margin: 0.75rem 0 1.25rem; color: var(--muted); font-size: 0.9rem;">
-            Actualiza tu nombre y correo de contacto. El nombre de usuario se mantiene sin cambios para conservar tus accesos.
-          </p>
-          <form method="post" style="display: grid; gap: 1rem;">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="update-account" />
-
-            {% if account_form.non_field_errors %}
-              <div style="padding: 0.75rem 1rem; border-radius: 0.75rem; background: rgba(220, 38, 38, 0.12); color: #b91c1c;">
-                {{ account_form.non_field_errors|striptags }}
-              </div>
-            {% endif %}
-
-            <div>
-              <label for="{{ account_form.first_name.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Nombre</label>
-              {{ account_form.first_name }}
-              {% if account_form.first_name.errors %}
-                <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ account_form.first_name.errors|striptags }}</small>
-              {% endif %}
-            </div>
-
-            <div>
-              <label for="{{ account_form.last_name.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Apellidos</label>
-              {{ account_form.last_name }}
-              {% if account_form.last_name.errors %}
-                <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ account_form.last_name.errors|striptags }}</small>
-              {% endif %}
-            </div>
-
-            <div>
-              <label for="{{ account_form.email.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Correo electrónico</label>
-              {{ account_form.email }}
-              {% if account_form.email.errors %}
-                <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ account_form.email.errors|striptags }}</small>
-              {% endif %}
-            </div>
-
-            <button type="submit" style="justify-self: start; padding: 0.65rem 1.4rem; border-radius: 999px; border: none; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;">
-              Guardar datos personales
-            </button>
-          </form>
-        </section>
-
-        <section>
-          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Cambiar contraseña</h3>
-          <p style="margin: 0.75rem 0 1.25rem; color: var(--muted); font-size: 0.9rem;">
-            Utiliza esta sección para elegir una nueva contraseña segura. Necesitamos tu contraseña actual para confirmar tu identidad.
-          </p>
-          <form method="post" style="display: grid; gap: 1rem;">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="change-password" />
-
-            {% if password_form.non_field_errors %}
-              <div style="padding: 0.75rem 1rem; border-radius: 0.75rem; background: rgba(220, 38, 38, 0.12); color: #b91c1c;">
-                {{ password_form.non_field_errors|striptags }}
-              </div>
-            {% endif %}
-
-            <div>
-              <label for="{{ password_form.old_password.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Contraseña actual</label>
-              {{ password_form.old_password }}
-              {% if password_form.old_password.errors %}
-                <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ password_form.old_password.errors|striptags }}</small>
-              {% endif %}
-            </div>
-
-            <div>
-              <label for="{{ password_form.new_password1.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Nueva contraseña</label>
-              {{ password_form.new_password1 }}
-              {% if password_form.new_password1.help_text %}
-                <small style="display: block; margin-top: 0.35rem; color: var(--muted);">{{ password_form.new_password1.help_text|safe }}</small>
-              {% endif %}
-              {% if password_form.new_password1.errors %}
-                <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ password_form.new_password1.errors|striptags }}</small>
-              {% endif %}
-            </div>
-
-            <div>
-              <label for="{{ password_form.new_password2.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Confirmar nueva contraseña</label>
-              {{ password_form.new_password2 }}
-              {% if password_form.new_password2.errors %}
-                <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ password_form.new_password2.errors|striptags }}</small>
-              {% endif %}
-            </div>
-
-            <button type="submit" style="justify-self: start; padding: 0.65rem 1.4rem; border-radius: 999px; border: none; background: var(--brand-dark); color: #fff; font-weight: 600; cursor: pointer;">
-              Actualizar contraseña
-            </button>
-          </form>
         </section>
       </div>
 
@@ -214,4 +188,206 @@
       </form>
     </div>
   </section>
+
+  <div
+    class="modal-backdrop"
+    data-modal="account-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="account-modal-title"
+    {% if account_form.errors or account_form.non_field_errors %}data-open-on-load="true"{% endif %}
+    hidden
+  >
+    <div class="modal-dialog">
+      <button type="button" class="modal-close" data-modal-dismiss aria-label="Cerrar">
+        &times;
+      </button>
+      <div>
+        <h2 id="account-modal-title" style="font-size: 1.25rem; font-weight: 700; margin: 0;">Editar datos personales</h2>
+        <p style="margin: 0.75rem 0 0; color: var(--muted);">
+          Actualiza tu nombre y correo de contacto. Tu nombre de usuario se mantiene sin cambios para conservar el acceso.
+        </p>
+      </div>
+      <form method="post" style="display: grid; gap: 1rem;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update-account" />
+
+        {% if account_form.non_field_errors %}
+          <div style="padding: 0.75rem 1rem; border-radius: 0.75rem; background: rgba(220, 38, 38, 0.12); color: #b91c1c;">
+            {{ account_form.non_field_errors|striptags }}
+          </div>
+        {% endif %}
+
+        <div>
+          <label for="{{ account_form.first_name.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Nombre</label>
+          {{ account_form.first_name.as_widget(attrs={"data-modal-focus": "true"}) }}
+          {% if account_form.first_name.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ account_form.first_name.errors|striptags }}</small>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ account_form.last_name.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Apellidos</label>
+          {{ account_form.last_name }}
+          {% if account_form.last_name.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ account_form.last_name.errors|striptags }}</small>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ account_form.email.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Correo electrónico</label>
+          {{ account_form.email }}
+          {% if account_form.email.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ account_form.email.errors|striptags }}</small>
+          {% endif %}
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+          <button type="button" data-modal-dismiss style="padding: 0.65rem 1.3rem; border-radius: 999px; border: 1px solid rgba(15, 23, 42, 0.12); background: #fff; font-weight: 600; color: var(--muted); cursor: pointer;">
+            Cancelar
+          </button>
+          <button type="submit" style="padding: 0.65rem 1.4rem; border-radius: 999px; border: none; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;">
+            Guardar cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div
+    class="modal-backdrop"
+    data-modal="password-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="password-modal-title"
+    {% if password_form.errors or password_form.non_field_errors %}data-open-on-load="true"{% endif %}
+    hidden
+  >
+    <div class="modal-dialog">
+      <button type="button" class="modal-close" data-modal-dismiss aria-label="Cerrar">
+        &times;
+      </button>
+      <div>
+        <h2 id="password-modal-title" style="font-size: 1.25rem; font-weight: 700; margin: 0;">Actualizar contraseña</h2>
+        <p style="margin: 0.75rem 0 0; color: var(--muted);">
+          Necesitamos tu contraseña actual para confirmar tu identidad antes de guardar una nueva contraseña segura.
+        </p>
+      </div>
+      <form method="post" style="display: grid; gap: 1rem;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="change-password" />
+
+        {% if password_form.non_field_errors %}
+          <div style="padding: 0.75rem 1rem; border-radius: 0.75rem; background: rgba(220, 38, 38, 0.12); color: #b91c1c;">
+            {{ password_form.non_field_errors|striptags }}
+          </div>
+        {% endif %}
+
+        <div>
+          <label for="{{ password_form.old_password.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Contraseña actual</label>
+          {{ password_form.old_password.as_widget(attrs={"data-modal-focus": "true"}) }}
+          {% if password_form.old_password.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ password_form.old_password.errors|striptags }}</small>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ password_form.new_password1.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Nueva contraseña</label>
+          {{ password_form.new_password1 }}
+          {% if password_form.new_password1.help_text %}
+            <small style="display: block; margin-top: 0.35rem; color: var(--muted);">{{ password_form.new_password1.help_text|safe }}</small>
+          {% endif %}
+          {% if password_form.new_password1.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ password_form.new_password1.errors|striptags }}</small>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="{{ password_form.new_password2.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Confirmar nueva contraseña</label>
+          {{ password_form.new_password2 }}
+          {% if password_form.new_password2.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ password_form.new_password2.errors|striptags }}</small>
+          {% endif %}
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+          <button type="button" data-modal-dismiss style="padding: 0.65rem 1.3rem; border-radius: 999px; border: 1px solid rgba(15, 23, 42, 0.12); background: #fff; font-weight: 600; color: var(--muted); cursor: pointer;">
+            Cancelar
+          </button>
+          <button type="submit" style="padding: 0.65rem 1.4rem; border-radius: 999px; border: none; background: var(--brand-dark); color: #fff; font-weight: 600; cursor: pointer;">
+            Actualizar contraseña
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const body = document.body;
+      const openClass = "modal-open";
+      let activeTrigger = null;
+
+      const closeModal = (modal) => {
+        if (!modal) {
+          return;
+        }
+        modal.classList.remove("is-open");
+        modal.setAttribute("hidden", "");
+        if (!document.querySelector("[data-modal].is-open")) {
+          body.classList.remove(openClass);
+        }
+        if (activeTrigger) {
+          activeTrigger.focus();
+          activeTrigger = null;
+        }
+      };
+
+      const openModal = (modal, trigger = null) => {
+        if (!modal) {
+          return;
+        }
+        activeTrigger = trigger;
+        modal.removeAttribute("hidden");
+        modal.classList.add("is-open");
+        body.classList.add(openClass);
+        const focusTarget = modal.querySelector("[data-modal-focus]") || modal.querySelector("input, button, select, textarea");
+        if (focusTarget) {
+          focusTarget.focus();
+        }
+      };
+
+      document.querySelectorAll("[data-modal-target]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const modal = document.querySelector(`[data-modal="${button.dataset.modalTarget}"]`);
+          openModal(modal, button);
+        });
+      });
+
+      document.querySelectorAll("[data-modal]").forEach((modal) => {
+        modal.addEventListener("click", (event) => {
+          if (event.target === modal) {
+            closeModal(modal);
+          }
+        });
+
+        modal.querySelectorAll("[data-modal-dismiss]").forEach((button) => {
+          button.addEventListener("click", () => closeModal(modal));
+        });
+
+        if (modal.dataset.openOnLoad === "true") {
+          openModal(modal);
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          const opened = document.querySelector("[data-modal].is-open");
+          if (opened) {
+            closeModal(opened);
+          }
+        }
+      });
+    })();
+  </script>
 {% endblock %}
