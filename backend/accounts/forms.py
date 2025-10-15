@@ -1,9 +1,61 @@
 from django import forms
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import PasswordChangeForm
 
 from .models import CompanyProfile
 
 
-class CompanyProfileForm(forms.ModelForm):
+class BaseStyledForm:
+    """Mixin to apply consistent styling to form fields."""
+
+    def _apply_styling(self):
+        for field in self.fields.values():
+            classes = ["form-input"]
+            if isinstance(field.widget, forms.FileInput):
+                classes.append("file-input")
+            field.widget.attrs.setdefault("class", " ".join(classes))
+            if isinstance(field.widget, forms.PasswordInput):
+                field.widget.attrs.setdefault("autocomplete", "new-password")
+            field.widget.attrs.setdefault(
+                "placeholder", "Opcional" if field.required is False else ""
+            )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._apply_styling()
+
+
+class UserAccountForm(BaseStyledForm, forms.ModelForm):
+    """Allow users to update their account information except username."""
+
+    class Meta:
+        model = get_user_model()
+        fields = ["first_name", "last_name", "email"]
+        labels = {
+            "first_name": "Nombre",
+            "last_name": "Apellidos",
+            "email": "Correo electrónico",
+        }
+        widgets = {
+            "email": forms.EmailInput(),
+        }
+
+
+class StyledPasswordChangeForm(BaseStyledForm, PasswordChangeForm):
+    """Password change form with consistent styling."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Override default labels for clarity in Spanish.
+        self.fields["old_password"].label = "Contraseña actual"
+        self.fields["new_password1"].label = "Nueva contraseña"
+        self.fields["new_password2"].label = "Confirmar nueva contraseña"
+        self.fields["old_password"].widget.attrs["autocomplete"] = "current-password"
+        self.fields["new_password1"].widget.attrs["autocomplete"] = "new-password"
+        self.fields["new_password2"].widget.attrs["autocomplete"] = "new-password"
+
+
+class CompanyProfileForm(BaseStyledForm, forms.ModelForm):
     class Meta:
         model = CompanyProfile
         fields = [
@@ -18,11 +70,3 @@ class CompanyProfileForm(forms.ModelForm):
             "tax_address": forms.Textarea(attrs={"rows": 3}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            classes = ["form-input"]
-            if isinstance(field.widget, forms.FileInput):
-                classes.append("file-input")
-            field.widget.attrs.setdefault("class", " ".join(classes))
-            field.widget.attrs.setdefault("placeholder", "Opcional" if field.required is False else "")

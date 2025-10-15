@@ -20,25 +20,27 @@
       </ul>
     {% endif %}
 
-    <div style="display: grid; grid-template-columns: minmax(220px, 280px) minmax(260px, 1fr); gap: 2rem; align-items: start; margin-top: 2rem;">
-      <div>
-        <h2 style="font-size: 1rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Resumen de la cuenta</h2>
-        <dl style="margin: 1rem 0 0; display: grid; gap: 1rem;">
-          <div>
-            <dt style="font-weight: 600; color: var(--muted);">Nombre de usuario</dt>
-            <dd style="margin: 0.35rem 0 0;">{{ request.user.username }}</dd>
-          </div>
-          <div>
-            <dt style="font-weight: 600; color: var(--muted);">Nombre completo</dt>
-            <dd style="margin: 0.35rem 0 0;">{{ request.user.get_full_name|default:"No especificado" }}</dd>
-          </div>
-          <div>
-            <dt style="font-weight: 600; color: var(--muted);">Correo electrónico</dt>
-            <dd style="margin: 0.35rem 0 0;">{{ request.user.email|default:"No especificado" }}</dd>
-          </div>
-        </dl>
+    <div style="display: grid; grid-template-columns: minmax(220px, 300px) minmax(260px, 1fr); gap: 2.5rem; align-items: start; margin-top: 2rem;">
+      <div style="display: grid; gap: 2.5rem; align-content: start;">
+        <section>
+          <h2 style="font-size: 1rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Resumen de la cuenta</h2>
+          <dl style="margin: 1rem 0 0; display: grid; gap: 1rem;">
+            <div>
+              <dt style="font-weight: 600; color: var(--muted);">Nombre de usuario</dt>
+              <dd style="margin: 0.35rem 0 0;">{{ request.user.username }}</dd>
+            </div>
+            <div>
+              <dt style="font-weight: 600; color: var(--muted);">Nombre completo</dt>
+              <dd style="margin: 0.35rem 0 0;">{{ request.user.get_full_name|default:"No especificado" }}</dd>
+            </div>
+            <div>
+              <dt style="font-weight: 600; color: var(--muted);">Correo electrónico</dt>
+              <dd style="margin: 0.35rem 0 0;">{{ request.user.email|default:"No especificado" }}</dd>
+            </div>
+          </dl>
+        </section>
 
-        <div style="margin-top: 2.5rem;">
+        <section>
           <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--muted);">Logotipo actual</h3>
           {% if profile.logo %}
             <div style="margin-top: 0.75rem; padding: 1rem; border: 1px dashed rgba(15, 94, 240, 0.35); border-radius: 0.85rem; background: rgba(15, 94, 240, 0.04);">
@@ -50,70 +52,164 @@
           <p style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted);">
             Sugerencia: usa un archivo PNG o SVG ligero (&lt; 1&nbsp;MB) para tiempos de carga rápidos.
           </p>
-        </div>
+        </section>
+
+        <section>
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Información personal</h3>
+          <p style="margin: 0.75rem 0 1.25rem; color: var(--muted); font-size: 0.9rem;">
+            Actualiza tu nombre y correo de contacto. El nombre de usuario se mantiene sin cambios para conservar tus accesos.
+          </p>
+          <form method="post" style="display: grid; gap: 1rem;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update-account" />
+
+            {% if account_form.non_field_errors %}
+              <div style="padding: 0.75rem 1rem; border-radius: 0.75rem; background: rgba(220, 38, 38, 0.12); color: #b91c1c;">
+                {{ account_form.non_field_errors|striptags }}
+              </div>
+            {% endif %}
+
+            <div>
+              <label for="{{ account_form.first_name.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Nombre</label>
+              {{ account_form.first_name }}
+              {% if account_form.first_name.errors %}
+                <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ account_form.first_name.errors|striptags }}</small>
+              {% endif %}
+            </div>
+
+            <div>
+              <label for="{{ account_form.last_name.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Apellidos</label>
+              {{ account_form.last_name }}
+              {% if account_form.last_name.errors %}
+                <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ account_form.last_name.errors|striptags }}</small>
+              {% endif %}
+            </div>
+
+            <div>
+              <label for="{{ account_form.email.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Correo electrónico</label>
+              {{ account_form.email }}
+              {% if account_form.email.errors %}
+                <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ account_form.email.errors|striptags }}</small>
+              {% endif %}
+            </div>
+
+            <button type="submit" style="justify-self: start; padding: 0.65rem 1.4rem; border-radius: 999px; border: none; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;">
+              Guardar datos personales
+            </button>
+          </form>
+        </section>
+
+        <section>
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Cambiar contraseña</h3>
+          <p style="margin: 0.75rem 0 1.25rem; color: var(--muted); font-size: 0.9rem;">
+            Utiliza esta sección para elegir una nueva contraseña segura. Necesitamos tu contraseña actual para confirmar tu identidad.
+          </p>
+          <form method="post" style="display: grid; gap: 1rem;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="change-password" />
+
+            {% if password_form.non_field_errors %}
+              <div style="padding: 0.75rem 1rem; border-radius: 0.75rem; background: rgba(220, 38, 38, 0.12); color: #b91c1c;">
+                {{ password_form.non_field_errors|striptags }}
+              </div>
+            {% endif %}
+
+            <div>
+              <label for="{{ password_form.old_password.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Contraseña actual</label>
+              {{ password_form.old_password }}
+              {% if password_form.old_password.errors %}
+                <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ password_form.old_password.errors|striptags }}</small>
+              {% endif %}
+            </div>
+
+            <div>
+              <label for="{{ password_form.new_password1.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Nueva contraseña</label>
+              {{ password_form.new_password1 }}
+              {% if password_form.new_password1.help_text %}
+                <small style="display: block; margin-top: 0.35rem; color: var(--muted);">{{ password_form.new_password1.help_text|safe }}</small>
+              {% endif %}
+              {% if password_form.new_password1.errors %}
+                <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ password_form.new_password1.errors|striptags }}</small>
+              {% endif %}
+            </div>
+
+            <div>
+              <label for="{{ password_form.new_password2.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Confirmar nueva contraseña</label>
+              {{ password_form.new_password2 }}
+              {% if password_form.new_password2.errors %}
+                <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ password_form.new_password2.errors|striptags }}</small>
+              {% endif %}
+            </div>
+
+            <button type="submit" style="justify-self: start; padding: 0.65rem 1.4rem; border-radius: 999px; border: none; background: var(--brand-dark); color: #fff; font-weight: 600; cursor: pointer;">
+              Actualizar contraseña
+            </button>
+          </form>
+        </section>
       </div>
 
       <form method="post" enctype="multipart/form-data" style="display: grid; gap: 1.25rem;">
         {% csrf_token %}
+        <input type="hidden" name="action" value="update-company" />
 
-        {% if form.non_field_errors %}
+        {% if profile_form.non_field_errors %}
           <div style="padding: 0.75rem 1rem; border-radius: 0.75rem; background: rgba(220, 38, 38, 0.12); color: #b91c1c;">
-            {{ form.non_field_errors|striptags }}
+            {{ profile_form.non_field_errors|striptags }}
           </div>
         {% endif %}
 
         <div>
-          <label for="{{ form.legal_name.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Razón social</label>
-          {{ form.legal_name }}
+          <label for="{{ profile_form.legal_name.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Razón social</label>
+          {{ profile_form.legal_name }}
           <small style="display: block; margin-top: 0.3rem; color: var(--muted);">Nombre que se mostrará como emisor.</small>
-          {% if form.legal_name.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ form.legal_name.errors|striptags }}</small>
+          {% if profile_form.legal_name.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ profile_form.legal_name.errors|striptags }}</small>
           {% endif %}
         </div>
 
         <div style="display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
           <div>
-            <label for="{{ form.tax_id.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">RFC</label>
-            {{ form.tax_id }}
-            {% if form.tax_id.errors %}
-              <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ form.tax_id.errors|striptags }}</small>
+            <label for="{{ profile_form.tax_id.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">RFC</label>
+            {{ profile_form.tax_id }}
+            {% if profile_form.tax_id.errors %}
+              <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ profile_form.tax_id.errors|striptags }}</small>
             {% endif %}
           </div>
           <div>
-            <label for="{{ form.contact_phone.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Teléfono</label>
-            {{ form.contact_phone }}
-            {% if form.contact_phone.errors %}
-              <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ form.contact_phone.errors|striptags }}</small>
+            <label for="{{ profile_form.contact_phone.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Teléfono</label>
+            {{ profile_form.contact_phone }}
+            {% if profile_form.contact_phone.errors %}
+              <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ profile_form.contact_phone.errors|striptags }}</small>
             {% endif %}
           </div>
         </div>
 
         <div>
-          <label for="{{ form.tax_address.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Domicilio fiscal</label>
-          {{ form.tax_address }}
-          {% if form.tax_address.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ form.tax_address.errors|striptags }}</small>
+          <label for="{{ profile_form.tax_address.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Domicilio fiscal</label>
+          {{ profile_form.tax_address }}
+          {% if profile_form.tax_address.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ profile_form.tax_address.errors|striptags }}</small>
           {% endif %}
         </div>
 
         <div>
-          <label for="{{ form.contact_email.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Correo de contacto</label>
-          {{ form.contact_email }}
-          {% if form.contact_email.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ form.contact_email.errors|striptags }}</small>
+          <label for="{{ profile_form.contact_email.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Correo de contacto</label>
+          {{ profile_form.contact_email }}
+          {% if profile_form.contact_email.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ profile_form.contact_email.errors|striptags }}</small>
           {% endif %}
         </div>
 
         <div>
-          <label for="{{ form.logo.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Logotipo</label>
-          {{ form.logo }}
-          {% if form.logo.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ form.logo.errors|striptags }}</small>
+          <label for="{{ profile_form.logo.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Logotipo</label>
+          {{ profile_form.logo }}
+          {% if profile_form.logo.errors %}
+            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ profile_form.logo.errors|striptags }}</small>
           {% endif %}
         </div>
 
         <button type="submit" style="justify-self: start; padding: 0.7rem 1.5rem; border-radius: 999px; border: none; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;">
-          Guardar cambios
+          Guardar cambios fiscales
         </button>
       </form>
     </div>
