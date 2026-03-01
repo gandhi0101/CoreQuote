@@ -15,6 +15,10 @@ env = environ.Env(
 # --- Core
 SECRET_KEY = os.getenv("SECRET_KEY", default="dev-not-secure")
 DEBUG = os.getenv("DEBUG", "True") == "True"
+APP_BASE_URL = os.getenv("APP_BASE_URL", "").rstrip("/")
+
+if DEBUG:
+    os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")
 
 if DEBUG:
     ALLOWED_HOSTS = ["*"]

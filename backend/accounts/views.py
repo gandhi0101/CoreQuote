@@ -15,7 +15,7 @@ from .forms import (
     StyledPasswordChangeForm,
     UserAccountForm,
 )
-from .gmail import GMAIL_SCOPES, build_flow, get_gmail_profile, send_test_email
+from .gmail import GMAIL_SCOPES, build_flow, build_redirect_uri, get_gmail_profile, send_test_email
 from .models import CompanyProfile, GmailServiceConfiguration
 
 
@@ -151,7 +151,7 @@ def profile(request):
             "gmail_configuration": gmail_configuration,
             "gmail_form": gmail_form,
             "gmail_test_form": gmail_test_form,
-            "gmail_callback_url": request.build_absolute_uri(reverse("accounts:gmail_callback"))
+            "gmail_callback_url": build_redirect_uri(request)
             if gmail_configuration
             else "",
         },
@@ -176,6 +176,7 @@ def gmail_connect(request):
         prompt="consent",
     )
     request.session["gmail_oauth_state"] = state
+    request.session["gmail_oauth_code_verifier"] = flow.code_verifier
     return redirect(authorization_url)
 
 
@@ -187,11 +188,12 @@ def gmail_callback(request):
         messages.error(request, "La configuración de Gmail aún no está disponible. Ejecuta las migraciones.")
         return redirect("accounts:profile")
     state = request.session.get("gmail_oauth_state")
-    if not state:
+    code_verifier = request.session.get("gmail_oauth_code_verifier")
+    if not state or not code_verifier:
         messages.error(request, "La sesión de autorización expiró. Intenta conectar Gmail de nuevo.")
         return redirect("accounts:profile")
 
-    flow = build_flow(configuration, request, state=state)
+    flow = build_flow(configuration, request, state=state, code_verifier=code_verifier)
     try:
         flow.fetch_token(authorization_response=request.build_absolute_uri())
         credentials = flow.credentials
@@ -223,6 +225,7 @@ def gmail_callback(request):
     configuration.scopes = list(credentials.scopes or GMAIL_SCOPES)
     configuration.save()
     request.session.pop("gmail_oauth_state", None)
+    request.session.pop("gmail_oauth_code_verifier", None)
     messages.success(request, f"Gmail conectado correctamente con la cuenta {configuration.connected_email}.")
     return redirect("accounts:profile")
 

@@ -1,6 +1,8 @@
 import base64
 from email.message import EmailMessage
+from urllib.parse import urlsplit, urlunsplit
 
+from django.conf import settings
 from django.urls import reverse
 
 GMAIL_SCOPES = [
@@ -29,15 +31,29 @@ def build_client_config(configuration):
 
 
 def build_redirect_uri(request):
-    return request.build_absolute_uri(reverse("accounts:gmail_callback"))
+    callback_path = reverse("accounts:gmail_callback")
+
+    if settings.APP_BASE_URL:
+        return f"{settings.APP_BASE_URL}{callback_path}"
+
+    uri = request.build_absolute_uri(callback_path)
+    if settings.DEBUG:
+        return uri
+
+    parsed = urlsplit(uri)
+    if parsed.scheme != "https":
+        uri = urlunsplit(("https", parsed.netloc, parsed.path, parsed.query, parsed.fragment))
+    return uri
 
 
-def build_flow(configuration, request, state=None):
+def build_flow(configuration, request, state=None, code_verifier=None):
     _, Flow, _ = _load_google_dependencies()
     flow = Flow.from_client_config(
         build_client_config(configuration),
         scopes=GMAIL_SCOPES,
         state=state,
+        code_verifier=code_verifier,
+        autogenerate_code_verifier=code_verifier is None,
     )
     flow.redirect_uri = build_redirect_uri(request)
     return flow
