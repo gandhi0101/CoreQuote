@@ -1,0 +1,16 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+  <section style="margin: 0 0 1.35rem; padding: 1.35rem 1.5rem; border: 1px solid rgba(96, 165, 250, 0.14); border-radius: 1.25rem; background: radial-gradient(circle at top right, rgba(78, 161, 255, 0.18), transparent 30%), linear-gradient(135deg, rgba(8, 15, 29, 0.92), rgba(13, 24, 42, 0.88)); box-shadow: 0 24px 50px rgba(3, 7, 18, 0.24);">
+    <p style="margin: 0 0 0.45rem; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #9ecaff;">
+      Backoffice
+    </p>
+    <h1 style="margin: 0; font-size: clamp(1.8rem, 4vw, 2.7rem); line-height: 1.05; color: #fff;">
+      Centro de control de CoreQuote
+    </h1>
+    <p style="margin: 0.85rem 0 0; max-width: 62ch; color: #bdd2ef; font-size: 1rem; line-height: 1.65;">
+      Administra usuarios, configuraciones de Gmail y datos críticos del sistema desde un panel más claro y legible.
+    </p>
+  </section>
+  {{ block.super }}
+{% endblock %}
