@@ -1,5 +1,6 @@
 import base64
 from email.message import EmailMessage
+from types import SimpleNamespace
 from urllib.parse import urlsplit, urlunsplit
 
 from django.conf import settings
@@ -9,6 +10,22 @@ GMAIL_SCOPES = [
     "https://www.googleapis.com/auth/gmail.send",
     "https://www.googleapis.com/auth/gmail.readonly",
 ]
+
+
+def combine_gmail_configuration(settings_configuration, user_configuration):
+    if not settings_configuration or not user_configuration:
+        return None
+
+    return SimpleNamespace(
+        client_id=settings_configuration.client_id,
+        client_secret=settings_configuration.client_secret,
+        token_uri=settings_configuration.token_uri or "https://oauth2.googleapis.com/token",
+        scopes=settings_configuration.scopes or GMAIL_SCOPES,
+        access_token=user_configuration.access_token,
+        refresh_token=user_configuration.refresh_token,
+        connected_email=user_configuration.connected_email,
+        is_enabled=user_configuration.is_enabled,
+    )
 
 
 def _load_google_dependencies():

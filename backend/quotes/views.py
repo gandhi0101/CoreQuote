@@ -4,7 +4,6 @@ from io import BytesIO
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import connection
 from django.db import transaction
 from django.forms import formset_factory
 from django.http import HttpResponse, HttpResponseNotAllowed
@@ -21,7 +20,8 @@ from reportlab.lib.utils import ImageReader
 from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from accounts.gmail import send_email_message
-from accounts.models import CompanyProfile, GmailServiceConfiguration
+from accounts.models import CompanyProfile
+from accounts.views import get_effective_gmail_configuration
 from .forms import QuoteForm, QuoteItemForm
 from .models import Quote, QuoteItem
 
@@ -56,15 +56,11 @@ def _render_quote_form(
     )
 
 
-def _get_gmail_configuration():
-    if GmailServiceConfiguration._meta.db_table not in connection.introspection.table_names():
-        return None
-
-    configuration = GmailServiceConfiguration.objects.filter(
-        name="Gmail principal",
-        is_enabled=True,
-    ).first()
+def _get_gmail_configuration(user):
+    _, _, configuration = get_effective_gmail_configuration(user)
     if not configuration:
+        return None
+    if not configuration.is_enabled:
         return None
     if not configuration.client_id or not configuration.client_secret:
         return None
@@ -76,7 +72,7 @@ def _get_gmail_configuration():
 def _render_quote_row_html(request, quote):
     return render_to_string(
         "quotes/partials/quote_row.html",
-        {"quote": quote, "gmail_ready": bool(_get_gmail_configuration())},
+        {"quote": quote, "gmail_ready": bool(_get_gmail_configuration(request.user))},
         request=request,
     )
 
@@ -90,7 +86,7 @@ def quote_list(request):
             "quotes": Quote.objects.filter(created_by=request.user)
             .select_related("client")
             .order_by("-created_at"),
-            "gmail_ready": bool(_get_gmail_configuration()),
+            "gmail_ready": bool(_get_gmail_configuration(request.user)),
         },
     )
 
@@ -265,7 +261,7 @@ def quote_row(request, pk):
     return render(
         request,
         "quotes/partials/quote_row.html",
-        {"quote": quote, "gmail_ready": bool(_get_gmail_configuration())},
+        {"quote": quote, "gmail_ready": bool(_get_gmail_configuration(request.user))},
     )
 
 
@@ -562,7 +558,7 @@ def quote_send(request, pk):
         .filter(created_by=request.user),
         pk=pk,
     )
-    configuration = _get_gmail_configuration()
+    configuration = _get_gmail_configuration(request.user)
 
     if not quote.client.email:
         message = "La cotización no se puede enviar porque el cliente no tiene correo registrado."

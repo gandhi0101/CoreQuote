@@ -101,6 +101,12 @@ class QuotePDFViewTests(TestCase):
             name="Gmail principal",
             client_id="client-id",
             client_secret="client-secret",
+            is_enabled=True,
+            scopes=["https://www.googleapis.com/auth/gmail.send"],
+        )
+        GmailServiceConfiguration.objects.create(
+            user=self.user,
+            name=f"Gmail de {self.user.username}",
             refresh_token="refresh-token",
             access_token="access-token",
             connected_email="ventas@example.com",

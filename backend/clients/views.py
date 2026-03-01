@@ -2,13 +2,12 @@ import json
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import connection
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 
 from accounts.gmail import send_email_message
-from accounts.models import GmailServiceConfiguration
+from accounts.views import get_effective_gmail_configuration
 from .forms import ClientEmailForm, ClientForm
 from .models import Client
 
@@ -25,15 +24,11 @@ def _render_client_form(request, form, client=None):
     )
 
 
-def _get_gmail_configuration():
-    if GmailServiceConfiguration._meta.db_table not in connection.introspection.table_names():
-        return None
-
-    configuration = GmailServiceConfiguration.objects.filter(
-        name="Gmail principal",
-        is_enabled=True,
-    ).first()
+def _get_gmail_configuration(user):
+    _, _, configuration = get_effective_gmail_configuration(user)
     if not configuration:
+        return None
+    if not configuration.is_enabled:
         return None
     if not configuration.client_id or not configuration.client_secret:
         return None
@@ -45,7 +40,7 @@ def _get_gmail_configuration():
 def _render_client_row(request, client):
     return render_to_string(
         "clients/partials/client_row.html",
-        {"client": client, "gmail_ready": bool(_get_gmail_configuration())},
+        {"client": client, "gmail_ready": bool(_get_gmail_configuration(request.user))},
         request=request,
     )
 
@@ -57,7 +52,7 @@ def _render_client_email_form(request, client, form):
         {
             "client": client,
             "form": form,
-            "gmail_ready": bool(_get_gmail_configuration()),
+            "gmail_ready": bool(_get_gmail_configuration(request.user)),
         },
     )
 
@@ -70,7 +65,7 @@ def client_list(request):
         {
             "clients": Client.objects.filter(owner=request.user).order_by("-created_at"),
             "form": ClientForm(),
-            "gmail_ready": bool(_get_gmail_configuration()),
+            "gmail_ready": bool(_get_gmail_configuration(request.user)),
         },
     )
 
@@ -108,7 +103,7 @@ def client_create(request):
     )
     row_html = render_to_string(
         "clients/partials/client_row.html",
-        {"client": client, "gmail_ready": bool(_get_gmail_configuration())},
+        {"client": client, "gmail_ready": bool(_get_gmail_configuration(request.user))},
         request=request,
     )
     response = HttpResponse(form_html)
@@ -162,7 +157,7 @@ def client_update(request, pk):
     )
     row_html = render_to_string(
         "clients/partials/client_row.html",
-        {"client": client, "gmail_ready": bool(_get_gmail_configuration())},
+        {"client": client, "gmail_ready": bool(_get_gmail_configuration(request.user))},
         request=request,
     )
     response = HttpResponse(form_html)
@@ -186,7 +181,7 @@ def client_row(request, pk):
     return render(
         request,
         "clients/partials/client_row.html",
-        {"client": client, "gmail_ready": bool(_get_gmail_configuration())},
+        {"client": client, "gmail_ready": bool(_get_gmail_configuration(request.user))},
     )
 
 
@@ -222,7 +217,7 @@ def client_email(request, pk):
     if request.method != "POST":
         return HttpResponseNotAllowed(["GET", "POST"])
 
-    configuration = _get_gmail_configuration()
+    configuration = _get_gmail_configuration(request.user)
     if not configuration:
         message = "Configura y conecta Gmail desde Mis datos antes de enviar correos."
         if not _is_htmx(request):
@@ -241,7 +236,7 @@ def client_email(request, pk):
                 {
                     "clients": Client.objects.filter(owner=request.user).order_by("-created_at"),
                     "form": ClientForm(),
-                    "gmail_ready": bool(_get_gmail_configuration()),
+                    "gmail_ready": bool(_get_gmail_configuration(request.user)),
                 },
             )
         return _render_client_email_form(request, client, form)

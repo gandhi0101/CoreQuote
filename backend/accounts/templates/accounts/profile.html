@@ -473,14 +473,19 @@
       </section>
     </div>
 
-    {% if request.user.is_superuser and gmail_configuration and gmail_form and gmail_test_form %}
+    {% if gmail_configuration and gmail_test_form %}
       <section class="card profile-admin-card">
         <div>
-          <span class="profile-badge">Panel administrativo</span>
+          <span class="profile-badge">{% if request.user.is_superuser %}Panel administrativo{% else %}Correo personal{% endif %}</span>
           <h2 style="margin: 0.85rem 0 0;">Servicio de correo de Gmail</h2>
           <p class="muted" style="margin: 0.5rem 0 0; max-width: 70ch;">
-            Configura la conexión OAuth de Google para que la app pueda enviar correos usando una cuenta Gmail real.
-            Google ya no permite este flujo con solo usuario y contraseña, por eso aquí se guardan las credenciales de OAuth 2.0.
+            {% if request.user.is_superuser %}
+              Configura la conexión OAuth de Google para que la app pueda enviar correos usando cuentas Gmail reales.
+              Cada usuario conectará su propia cuenta, pero las credenciales OAuth de la app se administran aquí.
+            {% else %}
+              Conecta tu cuenta Gmail personal para enviar correos desde CoreQuote con tu propia identidad.
+              Por ahora este flujo funciona únicamente con Gmail.
+            {% endif %}
           </p>
         </div>
 
@@ -508,40 +513,46 @@
         {% endif %}
 
         <div class="profile-admin-stack">
-          <form method="post" class="profile-form">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="update-gmail" />
+          {% if request.user.is_superuser and gmail_form %}
+            <form method="post" class="profile-form">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="update-gmail" />
 
-            <div class="profile-form-grid">
-              <div class="profile-field profile-field--full">
-                <label for="{{ gmail_form.client_id.id_for_label }}">{{ gmail_form.client_id.label }}</label>
-                {{ gmail_form.client_id }}
-                {% if gmail_form.client_id.errors %}
-                  <small style="color: #b91c1c;">{{ gmail_form.client_id.errors|striptags }}</small>
-                {% endif %}
+              <div class="profile-form-grid">
+                <div class="profile-field profile-field--full">
+                  <label for="{{ gmail_form.client_id.id_for_label }}">{{ gmail_form.client_id.label }}</label>
+                  {{ gmail_form.client_id }}
+                  {% if gmail_form.client_id.errors %}
+                    <small style="color: #b91c1c;">{{ gmail_form.client_id.errors|striptags }}</small>
+                  {% endif %}
+                </div>
+
+                <div class="profile-field profile-field--full">
+                  <label for="{{ gmail_form.client_secret.id_for_label }}">{{ gmail_form.client_secret.label }}</label>
+                  {{ gmail_form.client_secret }}
+                  {% if gmail_form.client_secret.errors %}
+                    <small style="color: #b91c1c;">{{ gmail_form.client_secret.errors|striptags }}</small>
+                  {% endif %}
+                </div>
+
+                <div class="profile-field profile-field--full">
+                  <label for="{{ gmail_form.is_enabled.id_for_label }}" style="display: flex; align-items: center; gap: 0.65rem;">
+                    {{ gmail_form.is_enabled }}
+                    <span>{{ gmail_form.is_enabled.label }}</span>
+                  </label>
+                </div>
               </div>
 
-              <div class="profile-field profile-field--full">
-                <label for="{{ gmail_form.client_secret.id_for_label }}">{{ gmail_form.client_secret.label }}</label>
-                {{ gmail_form.client_secret }}
-                {% if gmail_form.client_secret.errors %}
-                  <small style="color: #b91c1c;">{{ gmail_form.client_secret.errors|striptags }}</small>
-                {% endif %}
+              <div class="profile-form-actions">
+                <button type="submit" class="primary">Guardar configuración OAuth</button>
+                <a class="secondary" href="{% url 'accounts:gmail_connect' %}">Conectar mi Gmail</a>
               </div>
-
-              <div class="profile-field profile-field--full">
-                <label for="{{ gmail_form.is_enabled.id_for_label }}" style="display: flex; align-items: center; gap: 0.65rem;">
-                  {{ gmail_form.is_enabled }}
-                  <span>{{ gmail_form.is_enabled.label }}</span>
-                </label>
-              </div>
-            </div>
-
+            </form>
+          {% else %}
             <div class="profile-form-actions">
-              <button type="submit" class="primary">Guardar configuración OAuth</button>
-              <a class="secondary" href="{% url 'accounts:gmail_connect' %}">Conectar con Google</a>
+              <a class="primary" href="{% url 'accounts:gmail_connect' %}">Conectar mi Gmail</a>
             </div>
-          </form>
+          {% endif %}
 
           {% if gmail_configuration.connected_email %}
             <form method="post" action="{% url 'accounts:gmail_disconnect' %}">

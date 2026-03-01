@@ -70,9 +70,16 @@ class CompanyProfile(models.Model):
 
 
 class GmailServiceConfiguration(models.Model):
-    """Singleton-like settings for Gmail OAuth used by the application."""
+    """Global OAuth settings plus per-user Gmail connections."""
 
     name = models.CharField(max_length=120, default="Gmail principal", unique=True)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="gmail_service_configuration",
+        null=True,
+        blank=True,
+    )
     client_id = models.CharField("Client ID", max_length=255, blank=True)
     client_secret = models.CharField("Client secret", max_length=255, blank=True)
     refresh_token = models.TextField(blank=True)
