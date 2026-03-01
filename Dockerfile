@@ -12,7 +12,7 @@ ENV DJANGO_SUPERUSER_USERNAME=admin \
 WORKDIR /app
 # deps de sistema para psycopg
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libpq-dev netcat-openbsd && rm -rf /var/lib/apt/lists/*
+    build-essential libpq-dev && rm -rf /var/lib/apt/lists/*
 
 # instala requirements primero (cache de capas)
 COPY backend/requirements.txt /app/requirements.txt
