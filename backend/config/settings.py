@@ -23,6 +23,10 @@ else:
 
 CSRF_TRUSTED_ORIGINS = [u.strip() for u in env("CSRF_TRUSTED_ORIGINS", default="http://localhost,http://127.0.0.1").split(",") if u.strip()]
 
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    USE_X_FORWARDED_HOST = True
+
 
 # --- Apps mínimas (agrega las tuyas aquí)
 INSTALLED_APPS = [
