@@ -2,14 +2,12 @@ import json
 from decimal import Decimal
 from io import BytesIO
 
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import connection
-from django.db import transaction
 from django.forms import formset_factory
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.db import transaction
 from django.utils import timezone
 from django.utils.formats import date_format
 
@@ -20,8 +18,7 @@ from reportlab.lib.units import inch
 from reportlab.lib.utils import ImageReader
 from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from accounts.gmail import send_email_message
-from accounts.models import CompanyProfile, GmailServiceConfiguration
+from accounts.models import CompanyProfile
 from .forms import QuoteForm, QuoteItemForm
 from .models import Quote, QuoteItem
 
@@ -56,31 +53,6 @@ def _render_quote_form(
     )
 
 
-def _get_gmail_configuration():
-    if GmailServiceConfiguration._meta.db_table not in connection.introspection.table_names():
-        return None
-
-    configuration = GmailServiceConfiguration.objects.filter(
-        name="Gmail principal",
-        is_enabled=True,
-    ).first()
-    if not configuration:
-        return None
-    if not configuration.client_id or not configuration.client_secret:
-        return None
-    if not (configuration.refresh_token or configuration.access_token) or not configuration.connected_email:
-        return None
-    return configuration
-
-
-def _render_quote_row_html(request, quote):
-    return render_to_string(
-        "quotes/partials/quote_row.html",
-        {"quote": quote, "gmail_ready": bool(_get_gmail_configuration())},
-        request=request,
-    )
-
-
 @login_required
 def quote_list(request):
     return render(
@@ -90,7 +62,6 @@ def quote_list(request):
             "quotes": Quote.objects.filter(created_by=request.user)
             .select_related("client")
             .order_by("-created_at"),
-            "gmail_ready": bool(_get_gmail_configuration()),
         },
     )
 
@@ -146,7 +117,11 @@ def quote_create(request):
         {"form": fresh_form, "formset": fresh_formset, "mode": "create"},
         request=request,
     )
-    row_html = _render_quote_row_html(request, quote)
+    row_html = render_to_string(
+        "quotes/partials/quote_row.html",
+        {"quote": quote},
+        request=request,
+    )
     response = HttpResponse(form_html)
     response["HX-Trigger"] = json.dumps(
         {
@@ -241,7 +216,11 @@ def quote_edit(request, pk):
         },
         request=request,
     )
-    row_html = _render_quote_row_html(request, quote)
+    row_html = render_to_string(
+        "quotes/partials/quote_row.html",
+        {"quote": quote},
+        request=request,
+    )
     response = HttpResponse(form_html)
     response["HX-Trigger"] = json.dumps(
         {
@@ -262,11 +241,7 @@ def quote_row(request, pk):
     quote = get_object_or_404(
         Quote.objects.select_related("client").filter(created_by=request.user), pk=pk
     )
-    return render(
-        request,
-        "quotes/partials/quote_row.html",
-        {"quote": quote, "gmail_ready": bool(_get_gmail_configuration())},
-    )
+    return render(request, "quotes/partials/quote_row.html", {"quote": quote})
 
 
 @login_required
@@ -278,14 +253,6 @@ def quote_pdf(request, pk):
         pk=pk,
     )
 
-    pdf_bytes = build_quote_pdf(quote)
-    filename = f"cotizacion-{quote.pk}.pdf"
-    response = HttpResponse(pdf_bytes, content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
-    return response
-
-
-def build_quote_pdf(quote):
     buffer = BytesIO()
     document = SimpleDocTemplate(
         buffer,
@@ -295,7 +262,6 @@ def build_quote_pdf(quote):
         topMargin=0.9 * inch,
         bottomMargin=0.8 * inch,
         title=f"Cotización #{quote.pk}",
-        pageCompression=0,
     )
 
     styles = getSampleStyleSheet()
@@ -548,99 +514,9 @@ def build_quote_pdf(quote):
     )
 
     buffer.seek(0)
-    return buffer.getvalue()
-
-
-@login_required
-def quote_send(request, pk):
-    if request.method != "POST":
-        return HttpResponseNotAllowed(["POST"])
-
-    quote = get_object_or_404(
-        Quote.objects.select_related("client", "created_by")
-        .prefetch_related("items__item")
-        .filter(created_by=request.user),
-        pk=pk,
-    )
-    configuration = _get_gmail_configuration()
-
-    if not quote.client.email:
-        message = "La cotización no se puede enviar porque el cliente no tiene correo registrado."
-        if not _is_htmx(request):
-            messages.error(request, message)
-            return redirect("quotes:list")
-        return _quote_send_error_response(request, quote, message)
-
-    if not configuration:
-        message = "Configura y conecta Gmail desde Mis datos antes de enviar cotizaciones."
-        if not _is_htmx(request):
-            messages.error(request, message)
-            return redirect("quotes:list")
-        return _quote_send_error_response(request, quote, message)
-
-    try:
-        send_email_message(
-            configuration,
-            recipient=quote.client.email,
-            subject=f"Cotización #{quote.pk} - {quote.client.name}",
-            body=render_to_string(
-                "quotes/partials/quote_email.txt",
-                {"quote": quote},
-                request=request,
-            ),
-            attachments=[
-                {
-                    "filename": f"cotizacion-{quote.pk}.pdf",
-                    "content": build_quote_pdf(quote),
-                    "maintype": "application",
-                    "subtype": "pdf",
-                }
-            ],
-        )
-    except Exception as exc:
-        configuration.last_error = str(exc)
-        configuration.save(update_fields=["last_error", "updated_at"])
-        message = f"No se pudo enviar la cotización: {exc}"
-        if not _is_htmx(request):
-            messages.error(request, message)
-            return redirect("quotes:list")
-        return _quote_send_error_response(request, quote, message)
-
-    if quote.status == Quote.STATUS_DRAFT:
-        quote.status = Quote.STATUS_SENT
-        quote.save(update_fields=["status"])
-
-    success_message = f"Cotización enviada a {quote.client.email}."
-    if not _is_htmx(request):
-        messages.success(request, success_message)
-        return redirect("quotes:list")
-
-    response = HttpResponse("")
-    response["HX-Trigger"] = json.dumps(
-        {
-            "toast": {"message": success_message, "type": "success"},
-            "listChanged": {
-                "action": "replace",
-                "selector": f"#quote-{quote.pk}",
-                "html": _render_quote_row_html(request, quote),
-            },
-        }
-    )
-    return response
-
-
-def _quote_send_error_response(request, quote, message):
-    response = HttpResponse(status=400)
-    response["HX-Trigger"] = json.dumps(
-        {
-            "toast": {"message": message, "type": "error"},
-            "listChanged": {
-                "action": "replace",
-                "selector": f"#quote-{quote.pk}",
-                "html": _render_quote_row_html(request, quote),
-            },
-        }
-    )
+    filename = f"cotizacion-{quote.pk}.pdf"
+    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
 

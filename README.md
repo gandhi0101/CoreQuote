@@ -14,8 +14,6 @@ Después del primer build, los cambios en Python, templates y archivos estático
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 ```
 
-El flujo de desarrollo también crea automáticamente el superusuario definido en `.env` si no existe todavía.
-
 Si cambias dependencias de `backend/requirements.txt` o el `Dockerfile.dev`, entonces sí necesitas reconstruir:
 
 ```bash

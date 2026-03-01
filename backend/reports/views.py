@@ -21,27 +21,15 @@ def _render_report_form(request, form, report=None):
     )
 
 
-def _reports_queryset(request):
-    return Report.objects.filter(created_by=request.user)
-
-
-def _report_page_context(request, form=None):
-    reports = _reports_queryset(request)
-    return {
-        "reports": reports,
-        "report_count": reports.count(),
-        "reports_with_description_count": reports.exclude(description="").count(),
-        "latest_report": reports.first(),
-        "form": form or ReportForm(),
-    }
-
-
 @login_required
 def report_list(request):
     return render(
         request,
         "reports/list.html",
-        _report_page_context(request),
+        {
+            "reports": Report.objects.filter(created_by=request.user),
+            "form": ReportForm(),
+        },
     )
 
 
@@ -58,11 +46,13 @@ def report_create(request):
             return render(
                 request,
                 "reports/list.html",
-                _report_page_context(request, form=form),
+                {
+                    "reports": Report.objects.filter(created_by=request.user),
+                    "form": form,
+                },
             )
         return _render_report_form(request, form)
 
-    had_no_reports = not _reports_queryset(request).exists()
     report = form.save(commit=False)
     report.created_by = request.user
     report.save()
@@ -82,22 +72,14 @@ def report_create(request):
         request=request,
     )
     response = HttpResponse(form_html)
-    list_change = {
-        "action": "prepend",
-        "target": "#reports-table-body",
-        "html": row_html,
-    }
-    if had_no_reports:
-        list_change = {
-            "action": "replace",
-            "selector": "#reports-empty-row",
-            "html": row_html,
-        }
     response["HX-Trigger"] = json.dumps(
         {
             "toast": {"message": "Reporte guardado.", "type": "success"},
-            "listChanged": list_change,
-            "modal": {"action": "close", "target": "#report-modal"},
+            "listChanged": {
+                "action": "prepend",
+                "target": "#reports-table-body",
+                "html": row_html,
+            },
         }
     )
     return response
@@ -121,7 +103,10 @@ def report_update(request, pk):
             return render(
                 request,
                 "reports/list.html",
-                _report_page_context(request, form=form),
+                {
+                    "reports": Report.objects.filter(created_by=request.user),
+                    "form": form,
+                },
             )
         return _render_report_form(request, form, report)
 
@@ -148,7 +133,6 @@ def report_update(request, pk):
                 "selector": f"#report-{report.pk}",
                 "html": row_html,
             },
-            "modal": {"action": "close", "target": "#report-modal"},
         }
     )
     return response
@@ -171,18 +155,7 @@ def report_delete(request, pk):
         return redirect("reports:list")
 
     response = HttpResponse("")
-    remaining_reports = _reports_queryset(request)
-    trigger_payload = {
-        "toast": {"message": "Reporte eliminado.", "type": "info"}
-    }
-    if not remaining_reports.exists():
-        trigger_payload["listChanged"] = {
-            "action": "prepend",
-            "target": "#reports-table-body",
-            "html": render_to_string(
-                "reports/partials/report_empty_row.html",
-                request=request,
-            ),
-        }
-    response["HX-Trigger"] = json.dumps(trigger_payload)
+    response["HX-Trigger"] = json.dumps(
+        {"toast": {"message": "Reporte eliminado.", "type": "info"}}
+    )
     return response

@@ -126,7 +126,6 @@ def item_create(request):
                 "target": "#inventory-table-body",
                 "html": row_html,
             },
-            "modal": {"action": "close", "target": "#item-modal"},
         }
     )
     return response
@@ -220,7 +219,6 @@ def item_update(request, pk):
                 "selector": f"#item-{item.pk}",
                 "html": row_html,
             },
-            "modal": {"action": "close", "target": "#item-modal"},
         }
     )
     return response

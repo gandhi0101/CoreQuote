@@ -1,139 +1,23 @@
 {% extends "base.html" %}
 
 {% block title %}Clientes · CoreQuote{% endblock %}
-{% block body_attrs %}data-page="clients"{% endblock %}
-{% block extra_head %}
-  <style>
-    .module-shell {
-      display: grid;
-      gap: 1.75rem;
-    }
-
-    .module-hero {
-      background:
-        radial-gradient(circle at top right, rgba(15, 94, 240, 0.16), transparent 28%),
-        linear-gradient(135deg, #ffffff 0%, #f7faff 100%);
-      border-radius: 1.4rem;
-      padding: clamp(1.4rem, 3vw, 2rem);
-      box-shadow: 0 22px 50px rgba(15, 94, 240, 0.08);
-      display: grid;
-      gap: 1.2rem;
-    }
-
-    .module-hero__top {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      align-items: start;
-      flex-wrap: wrap;
-    }
-
-    .module-hero h1 {
-      margin: 0;
-      font-size: clamp(2rem, 4vw, 2.7rem);
-    }
-
-    .module-hero p {
-      margin: 0.5rem 0 0;
-      max-width: 62ch;
-      color: var(--muted);
-    }
-
-    .module-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      padding: 0.45rem 0.8rem;
-      border-radius: 999px;
-      background: rgba(15, 94, 240, 0.1);
-      color: var(--brand);
-      font-size: 0.88rem;
-      font-weight: 700;
-    }
-
-    .module-stats {
-      display: grid;
-      gap: 1rem;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    }
-
-    .module-stat {
-      background: rgba(255, 255, 255, 0.72);
-      border: 1px solid rgba(15, 94, 240, 0.08);
-      border-radius: 1rem;
-      padding: 1rem 1.1rem;
-      display: grid;
-      gap: 0.3rem;
-    }
-
-    .module-stat__label {
-      color: var(--muted);
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-weight: 700;
-    }
-
-    .module-stat__value {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin: 0;
-      color: var(--text);
-    }
-
-    .module-stat__hint {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.92rem;
-      line-height: 1.5;
-    }
-
-    .module-table-card {
-      max-width: none;
-      width: 100%;
-    }
-  </style>
-{% endblock %}
 
 {% block content %}
-<div class="module-shell">
-  <section class="module-hero">
-    <div class="module-hero__top">
-      <div>
-        <span class="module-badge">Directorio comercial</span>
-        <h1>Clientes</h1>
-        <p>Gestiona tu base de clientes para reutilizarla en cotizaciones y mantener los datos de contacto siempre actualizados.</p>
-      </div>
-      <div class="module-badge">{{ clients|length }} registrados</div>
-    </div>
-    <div class="module-stats">
-      <article class="module-stat">
-        <span class="module-stat__label">Clientes activos</span>
-        <p class="module-stat__value">{{ clients|length }}</p>
-        <p class="module-stat__hint">Contactos disponibles para nuevas cotizaciones.</p>
-      </article>
-      <article class="module-stat">
-        <span class="module-stat__label">Flujo recomendado</span>
-        <p class="module-stat__value">1</p>
-        <p class="module-stat__hint">Primero registra clientes, luego crea cotizaciones con información consistente.</p>
-      </article>
+<section class="page-header">
+  <div>
+    <h1>Clientes</h1>
+    <p class="muted">Gestiona el catálogo de clientes y mantén sus datos al día.</p>
+  </div>
+</section>
+<div class="two-column">
+  <section class="card">
+    <div id="client-form-container">
+      {% include "clients/partials/client_form.html" with form=form %}
     </div>
   </section>
-  <section class="card table-card module-table-card">
+  <section class="card table-card">
     <div class="table-header">
-      <div>
-        <h2>Listado</h2>
-        <p class="muted">Consulta y administra tu directorio comercial desde una sola vista.</p>
-      </div>
-      <a
-        class="primary"
-        data-tour-anchor="client-create"
-        href="{% url 'clients:create' %}"
-        hx-get="{% url 'clients:create' %}"
-        hx-target="#client-modal-body"
-        hx-swap="innerHTML"
-        data-modal-trigger="#client-modal"
-      >Nuevo cliente</a>
+      <h2>Listado</h2>
     </div>
     <div class="table-wrapper">
       <table>
@@ -147,7 +31,7 @@
         </thead>
         <tbody id="clients-table-body">
           {% for client in clients %}
-            {% include "clients/partials/client_row.html" with client=client gmail_ready=gmail_ready %}
+            {% include "clients/partials/client_row.html" with client=client %}
           {% empty %}
             <tr>
               <td colspan="4" class="empty">No hay clientes registrados todavía.</td>
@@ -157,19 +41,5 @@
       </table>
     </div>
   </section>
-</div>
-
-<div id="client-modal" class="modal" aria-hidden="true">
-  <div class="modal__backdrop" data-modal-dismiss></div>
-  <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="client-modal-title">
-    <div id="client-modal-body" class="modal__body"></div>
-  </div>
-</div>
-
-<div id="client-email-modal" class="modal" aria-hidden="true">
-  <div class="modal__backdrop" data-modal-dismiss></div>
-  <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="client-email-modal-title">
-    <div id="client-email-modal-body" class="modal__body"></div>
-  </div>
 </div>
 {% endblock %}

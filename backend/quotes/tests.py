@@ -1,15 +1,14 @@
 import shutil
 import tempfile
-from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from accounts.models import CompanyProfile, GmailServiceConfiguration
 from clients.models import Client
 from inventory.models import Item
+from accounts.models import CompanyProfile
 from .models import Quote, QuoteItem
 
 
@@ -76,7 +75,7 @@ class QuotePDFViewTests(TestCase):
         response = self.client.get(reverse("quotes:pdf", args=[self.quote.pk]))
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"ACME Facturaci", response.content)
+        self.assertIn(b"ACME Facturaci\xc3\xb3n", response.content)
         self.assertIn(b"ACM010101AA1", response.content)
 
     def test_pdf_not_accessible_for_other_users(self):
@@ -94,40 +93,3 @@ class QuotePDFViewTests(TestCase):
         response = self.client.get(reverse("quotes:pdf", args=[other_quote.pk]))
 
         self.assertEqual(response.status_code, 404)
-
-    @patch("quotes.views.send_email_message")
-    def test_quote_send_uses_gmail_and_marks_quote_as_sent(self, send_email_message_mock):
-        GmailServiceConfiguration.objects.create(
-            name="Gmail principal",
-            client_id="client-id",
-            client_secret="client-secret",
-            refresh_token="refresh-token",
-            access_token="access-token",
-            connected_email="ventas@example.com",
-            is_enabled=True,
-            scopes=["https://www.googleapis.com/auth/gmail.send"],
-        )
-
-        response = self.client.post(
-            reverse("quotes:send", args=[self.quote.pk]),
-            HTTP_HX_REQUEST="true",
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.quote.refresh_from_db()
-        self.assertEqual(self.quote.status, Quote.STATUS_SENT)
-        send_email_message_mock.assert_called_once()
-        kwargs = send_email_message_mock.call_args.kwargs
-        self.assertEqual(kwargs["recipient"], self.client_obj.email)
-        self.assertEqual(kwargs["attachments"][0]["filename"], f"cotizacion-{self.quote.pk}.pdf")
-
-    def test_quote_send_requires_client_email(self):
-        self.client_obj.email = ""
-        self.client_obj.save(update_fields=["email"])
-
-        response = self.client.post(
-            reverse("quotes:send", args=[self.quote.pk]),
-            HTTP_HX_REQUEST="true",
-        )
-
-        self.assertEqual(response.status_code, 400)

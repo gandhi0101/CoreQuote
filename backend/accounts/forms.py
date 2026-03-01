@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordChangeForm
 
-from .models import CompanyProfile, GmailServiceConfiguration
+from .models import CompanyProfile
 
 
 class BaseStyledForm:
@@ -73,23 +73,5 @@ class CompanyProfileForm(BaseStyledForm, forms.ModelForm):
         ]
         widgets = {
             "tax_address": forms.Textarea(attrs={"rows": 3}),
-            "logo": forms.ClearableFileInput(attrs={"accept": "image/*"}),
         }
 
-
-class GmailServiceConfigurationForm(BaseStyledForm, forms.ModelForm):
-    class Meta:
-        model = GmailServiceConfiguration
-        fields = ["client_id", "client_secret", "is_enabled"]
-        labels = {
-            "client_id": "Google OAuth Client ID",
-            "client_secret": "Google OAuth Client secret",
-            "is_enabled": "Habilitar envio por Gmail",
-        }
-        widgets = {
-            "client_secret": forms.PasswordInput(render_value=True),
-        }
-
-
-class GmailTestEmailForm(BaseStyledForm, forms.Form):
-    recipient = forms.EmailField(label="Enviar prueba a")

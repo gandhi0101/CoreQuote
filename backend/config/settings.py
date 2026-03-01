@@ -20,11 +20,8 @@ APP_BASE_URL = os.getenv("APP_BASE_URL", "").rstrip("/")
 if DEBUG:
     os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")
 
-if DEBUG:
-    ALLOWED_HOSTS = ["*"]
-else:
-    ALLOWED_HOSTS = [h.strip() for h in env("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",") if h.strip()]
 
+ALLOWED_HOSTS = [h.strip() for h in env("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",") if h.strip()]
 CSRF_TRUSTED_ORIGINS = [u.strip() for u in env("CSRF_TRUSTED_ORIGINS", default="http://localhost,http://127.0.0.1").split(",") if u.strip()]
 
 if not DEBUG:

@@ -1,7 +1,15 @@
 <div class="form-panel" data-form-mode="{% if client %}edit{% else %}create{% endif %}">
   <div class="form-panel__header">
-    <h2 id="client-modal-title">{% if client %}Editar cliente{% else %}Registrar cliente{% endif %}</h2>
-    <button type="button" class="link" data-modal-dismiss>Cerrar</button>
+    <h2>{% if client %}Editar cliente{% else %}Registrar cliente{% endif %}</h2>
+    {% if client %}
+      <button
+        type="button"
+        class="link"
+        hx-get="{% url 'clients:create' %}"
+        hx-target="#client-form-container"
+        hx-swap="innerHTML"
+      >Cancelar edición</button>
+    {% endif %}
   </div>
   <form
     method="post"
@@ -12,7 +20,7 @@
       action="{% url 'clients:create' %}"
       hx-post="{% url 'clients:create' %}"
     {% endif %}
-    hx-target="#client-modal-body"
+    hx-target="#client-form-container"
     hx-swap="innerHTML"
     class="stacked-form"
   >
@@ -38,7 +46,6 @@
     {% endif %}
     <div class="form-actions">
       <button type="submit" class="primary">{% if client %}Guardar cambios{% else %}Guardar cliente{% endif %}</button>
-      <button type="button" class="secondary" data-modal-dismiss>Cancelar</button>
     </div>
   </form>
 </div>

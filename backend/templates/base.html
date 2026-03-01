@@ -13,8 +13,6 @@
         --surface-alt: #f4f6fb;
         --text: #1f2933;
         --muted: #64748b;
-        --topbar-height: 4.5rem;
-        --sidebar-shell-offset: 1rem;
       }
 
       html {
@@ -35,7 +33,6 @@
         display: flex;
         flex-direction: column;
         overflow-x: hidden;
-        padding-top: var(--topbar-height);
       }
 
       a {
@@ -50,12 +47,9 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        position: fixed;
-        inset: 0 0 auto 0;
-        min-height: var(--topbar-height);
+        position: sticky;
         top: 0;
-        z-index: 110;
-        transition: opacity 180ms ease, filter 180ms ease, transform 180ms ease;
+        z-index: 10;
       }
       .sidebar_nav{
         background: var(--surface);
@@ -78,25 +72,6 @@
         display: flex;
         align-items: center;
         gap: 2rem;
-      }
-
-      .mobile-sidebar-toggle {
-        display: none;
-        align-items: center;
-        justify-content: center;
-        inline-size: 2.75rem;
-        block-size: 2.75rem;
-        border-radius: 0.9rem;
-        border: 1px solid rgba(15, 94, 240, 0.14);
-        background: rgba(15, 94, 240, 0.08);
-        color: var(--brand);
-        cursor: pointer;
-      }
-
-      .mobile-sidebar-toggle svg {
-        inline-size: 1.2rem;
-        block-size: 1.2rem;
-        fill: currentColor;
       }
 
       .nav-links {
@@ -146,21 +121,15 @@
 
       details.user-menu {
         position: relative;
-        max-width: 100%;
       }
 
       details.user-menu > summary {
         list-style: none;
         cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
         padding: 0.4rem 1rem;
         border-radius: 999px;
         background: rgba(15, 94, 240, 0.08);
         font-weight: 600;
-        max-width: 100%;
-        white-space: nowrap;
       }
 
       details.user-menu[open] > summary,
@@ -187,19 +156,10 @@
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
-        border: 1px solid rgba(15, 94, 240, 0.08);
-      }
-
-      .nav-right {
-        max-width: 100%;
       }
 
       .user-menu__dropdown a,
       .user-menu__dropdown button {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        width: 100%;
         padding: 0.45rem 0.75rem;
         border-radius: 0.6rem;
         border: none;
@@ -208,10 +168,6 @@
         font: inherit;
         color: var(--text);
         cursor: pointer;
-      }
-
-      .user-menu__dropdown form {
-        margin: 0;
       }
 
       .user-menu__dropdown a:hover,
@@ -226,185 +182,38 @@
       input[type="text"],
       input[type="password"],
       input[type="email"],
-      input[type="number"],
       select,
       .form-input,
-      textarea,
       textarea.form-input {
-        width: 100%;
-        min-height: 3rem;
-        padding: 0.8rem 0.95rem;
-        border-radius: 0.95rem;
-        border: 1px solid rgba(15, 94, 240, 0.16);
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 255, 0.96));
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.85),
-          0 10px 24px rgba(15, 94, 240, 0.06);
+        padding: 0.65rem 0.85rem;
+        border-radius: 0.65rem;
+        border: 1px solid rgba(15, 94, 240, 0.25);
         font: inherit;
-        line-height: 1.35;
-        vertical-align: middle;
-        color: var(--text);
-        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
       }
 
       input[type="text"]:focus,
       input[type="password"]:focus,
       input[type="email"]:focus,
-      input[type="number"]:focus,
       select:focus,
-      textarea:focus,
       .form-input:focus,
       textarea.form-input:focus {
         outline: none;
         border-color: var(--brand);
-        background: linear-gradient(180deg, #ffffff, #ffffff);
-        box-shadow:
-          0 0 0 4px rgba(15, 94, 240, 0.12),
-          0 18px 36px rgba(15, 94, 240, 0.1);
-        transform: translateY(-1px);
-      }
-
-      input[type="text"]::placeholder,
-      input[type="password"]::placeholder,
-      input[type="email"]::placeholder,
-      input[type="number"]::placeholder,
-      textarea::placeholder,
-      .form-input::placeholder,
-      textarea.form-input::placeholder {
-        color: #8aa0bf;
-      }
-
-      input[type="number"] {
-        appearance: textfield;
-        -moz-appearance: textfield;
-      }
-
-      input[type="email"],
-      input[type="text"],
-      input[type="password"],
-      input[type="number"] {
-        -webkit-appearance: none;
-        appearance: none;
-      }
-
-      input[type="number"]::-webkit-outer-spin-button,
-      input[type="number"]::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-      }
-
-      textarea,
-      textarea.form-input {
-        min-height: 7.5rem;
-        resize: vertical;
-        line-height: 1.6;
-      }
-
-      select {
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        padding-right: 2.75rem;
-        background-image:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 255, 0.96)),
-          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%230f5ef0' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-        background-repeat: no-repeat, no-repeat;
-        background-position: 0 0, right 0.9rem center;
-        background-size: auto, 1rem;
+        box-shadow: 0 0 0 3px rgba(15, 94, 240, 0.15);
       }
 
       input.file-input {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        cursor: pointer;
-      }
-
-      .file-dropzone {
-        position: relative;
-        display: grid;
-        gap: 0.5rem;
-        padding: 1.1rem 1.15rem;
-        border-radius: 1.15rem;
-        border: 1.5px dashed rgba(15, 94, 240, 0.24);
-        background:
-          radial-gradient(circle at top right, rgba(15, 94, 240, 0.1), transparent 35%),
-          linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 255, 0.96));
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.9),
-          0 16px 30px rgba(15, 94, 240, 0.08);
-        overflow: hidden;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
-      }
-
-      .file-dropzone:hover,
-      .file-dropzone:focus-within {
-        border-color: rgba(15, 94, 240, 0.45);
-        box-shadow:
-          0 0 0 4px rgba(15, 94, 240, 0.1),
-          0 22px 40px rgba(15, 94, 240, 0.12);
-        transform: translateY(-1px);
-      }
-
-      .file-dropzone.is-dragover {
-        border-color: var(--brand);
-        background:
-          radial-gradient(circle at top right, rgba(15, 94, 240, 0.14), transparent 38%),
-          linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(239, 246, 255, 1));
-        box-shadow:
-          0 0 0 4px rgba(15, 94, 240, 0.14),
-          0 22px 44px rgba(15, 94, 240, 0.14);
-      }
-
-      .file-dropzone__content {
-        display: grid;
-        gap: 0.25rem;
-        pointer-events: none;
-      }
-
-      .file-dropzone__title {
-        font-weight: 700;
-        color: var(--text);
-      }
-
-      .file-dropzone__hint {
-        color: var(--muted);
-        font-size: 0.92rem;
-        line-height: 1.55;
-      }
-
-      .file-dropzone__meta {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.45rem;
-        flex-wrap: wrap;
-        margin-top: 0.15rem;
-        font-size: 0.84rem;
-      }
-
-      .file-dropzone__pill {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.24rem 0.6rem;
-        border-radius: 999px;
-        background: rgba(15, 94, 240, 0.1);
-        color: var(--brand);
-        font-weight: 700;
-      }
-
-      .file-dropzone__filename {
-        color: var(--text);
-        font-weight: 600;
+        padding: 0.45rem 0;
+        border: none;
       }
 
       .layout {
         flex: 1;
-        display: block;
+        display: flex;
+        align-items: stretch;
         width: 100%;
-        min-height: calc(100vh - var(--topbar-height));
+        gap: clamp(1rem, 3vw, 2.5rem);
       }
 
       .vertical-sidebar {
@@ -420,13 +229,8 @@
         --sidebar-shadow: 0 20px 45px rgba(15, 94, 240, 0.12);
         display: flex;
         inline-size: var(--sidebar-expanded);
-        block-size: calc(100vh - var(--topbar-height) - var(--sidebar-shell-offset) * 2);
+        padding-block: clamp(1rem, 2.5vw, 1.5rem);
         flex: 0 0 auto;
-        position: fixed;
-        top: calc(var(--topbar-height) + var(--sidebar-shell-offset));
-        left: var(--sidebar-shell-offset);
-        z-index: 70;
-        transition: opacity 180ms ease, filter 180ms ease, transform 180ms ease;
       }
 
       .vertical-sidebar:not(:has(:checked)) {
@@ -462,10 +266,6 @@
         display: none;
       }
 
-      .sidebar-mobile-backdrop {
-        display: none;
-      }
-
       .vertical-sidebar nav {
         background: var(--surface);
         border: 1px solid var(--sidebar-border);
@@ -473,12 +273,11 @@
         box-shadow: var(--sidebar-shadow);
         display: flex;
         flex-direction: column;
-        flex: 1 1 auto;
+        flex: 0 0 auto;
         min-inline-size: var(--sidebar-collapsed);
-        block-size: 100%;
         padding: var(--sidebar-frame);
         overflow: hidden;
-        transition: flex-basis 280ms ease, inline-size 280ms ease, transform 240ms ease;
+        transition: flex-basis 280ms ease;
       }
 
       .vertical-sidebar :checked ~ nav {
@@ -537,16 +336,16 @@
       }
 
       .vertical-sidebar figure {
-        display: grid;
-        justify-items: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         gap: 0.5rem;
         margin: 0;
         padding-inline: 0.35rem;
-        min-block-size: 5.5rem;
       }
 
       .vertical-sidebar .sidebar__avatar {
-        inline-size: 3rem;
+        inline-size: clamp(2.5rem, 6vw, 3.25rem);
         aspect-ratio: 1;
         border-radius: 50%;
         background: linear-gradient(135deg, rgba(15, 94, 240, 0.85), rgba(10, 68, 173, 0.95));
@@ -560,7 +359,6 @@
       .vertical-sidebar figcaption {
         text-align: center;
         color: var(--muted);
-        transition: opacity 180ms ease, transform 180ms ease;
       }
 
       .vertical-sidebar .user-id {
@@ -579,9 +377,6 @@
         flex-direction: column;
         gap: 0.85rem;
         padding: 0.35rem;
-        min-block-size: 0;
-        overflow-y: auto;
-        overscroll-behavior: contain;
       }
 
       .vertical-sidebar .sidebar__list {
@@ -696,19 +491,6 @@
         opacity: 0;
       }
 
-      .vertical-sidebar:not(:has(:checked)) figcaption {
-        transform: translateY(-0.25rem);
-      }
-
-      .vertical-sidebar:not(:has(:checked)) figure {
-        min-block-size: 3.6rem;
-      }
-
-      .vertical-sidebar:not(:has(:checked)) .sidebar__avatar {
-        inline-size: 2.4rem;
-        font-size: 1rem;
-      }
-
       .vertical-sidebar:has(:checked) .sidebar__item--heading,
       .vertical-sidebar:has(:checked) figcaption,
       .vertical-sidebar:has(:checked) .text {
@@ -753,16 +535,6 @@
       main {
         flex: 1;
         padding: 2.5rem clamp(1rem, 4vw, 3rem);
-        margin-left: calc(16.875rem + var(--sidebar-shell-offset) * 2);
-        transition: margin-left 280ms ease;
-      }
-
-      .layout:has(.vertical-sidebar:not(:has(:checked))) main {
-        margin-left: calc(3.35rem + var(--sidebar-shell-offset) * 2);
-      }
-
-      .layout:not(:has(.vertical-sidebar)) main {
-        margin-left: 0;
       }
 
       .page-header {
@@ -850,112 +622,11 @@
         font-style: italic;
       }
 
-      @media (max-width: 768px) {
-        .table-wrapper:not(.mini) {
-          overflow: visible;
-        }
-
-        .table-wrapper:not(.mini) table,
-        .table-wrapper:not(.mini) tbody,
-        .table-wrapper:not(.mini) tr,
-        .table-wrapper:not(.mini) td {
-          display: block;
-          width: 100%;
-        }
-
-        .table-wrapper:not(.mini) thead {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          padding: 0;
-          margin: -1px;
-          overflow: hidden;
-          clip: rect(0, 0, 0, 0);
-          border: 0;
-        }
-
-        .table-wrapper:not(.mini) tbody {
-          display: grid;
-          gap: 0.9rem;
-        }
-
-        .table-wrapper:not(.mini) tbody tr {
-          background: rgba(255, 255, 255, 0.92);
-          border: 1px solid rgba(15, 94, 240, 0.08);
-          border-radius: 1.1rem;
-          padding: 0.35rem 1rem;
-          box-shadow: 0 14px 28px rgba(15, 94, 240, 0.06);
-        }
-
-        .table-wrapper:not(.mini) table tbody tr:first-child td,
-        .table-wrapper:not(.mini) table tbody td {
-          border-top: none;
-        }
-
-        .table-wrapper:not(.mini) table tbody tr:hover td {
-          background: transparent;
-        }
-
-        .table-wrapper:not(.mini) td {
-          padding: 0.7rem 0;
-        }
-
-        .table-wrapper:not(.mini) td[colspan] {
-          padding: 0;
-          text-align: initial;
-        }
-
-        .table-wrapper:not(.mini) td[data-label]::before {
-          content: attr(data-label);
-          display: block;
-          margin-bottom: 0.28rem;
-          color: var(--muted);
-          font-size: 0.76rem;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-        }
-
-        .table-wrapper:not(.mini) td.actions,
-        .table-wrapper:not(.mini) th.actions {
-          text-align: left;
-        }
-
-        .table-wrapper:not(.mini) .row-actions {
-          justify-content: flex-start;
-          gap: 0.55rem;
-        }
-      }
-
       .row-actions {
         display: flex;
         justify-content: flex-end;
         gap: 0.35rem;
         flex-wrap: wrap;
-      }
-
-      .row-actions .is-pending {
-        position: relative;
-        pointer-events: none;
-        opacity: 0.72;
-      }
-
-      .row-actions .request-spinner {
-        inline-size: 0.9rem;
-        block-size: 0.9rem;
-        border-radius: 50%;
-        border: 2px solid currentColor;
-        border-right-color: transparent;
-        display: inline-block;
-        vertical-align: text-bottom;
-        margin-right: 0.4rem;
-        animation: request-spin 0.65s linear infinite;
-      }
-
-      @keyframes request-spin {
-        to {
-          transform: rotate(360deg);
-        }
       }
 
       .stacked-form {
@@ -1144,14 +815,13 @@
 
       #toast-container {
         position: fixed;
-        top: calc(var(--topbar-height) + 1rem);
+        top: 1.5rem;
         right: 1.5rem;
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
-        z-index: 1500;
+        z-index: 20;
         pointer-events: none;
-        max-width: min(24rem, calc(100vw - 2rem));
       }
 
       .toast {
@@ -1162,7 +832,6 @@
         border-left: 4px solid var(--brand);
         pointer-events: auto;
         min-width: 220px;
-        max-width: 100%;
       }
 
       .toast.success {
@@ -1175,19 +844,6 @@
 
       .toast.error {
         border-left-color: #ef4444;
-      }
-
-      body.has-app-modal nav,
-      body.has-app-modal .vertical-sidebar,
-      body.has-app-modal .tour-launcher {
-        opacity: 0.22;
-        filter: blur(1.5px) saturate(0.85);
-        transform: scale(0.995);
-      }
-
-      body.modal-lock {
-        overflow: hidden;
-        overscroll-behavior: none;
       }
 
       .toast button {
@@ -1205,9 +861,7 @@
         align-items: center;
         justify-content: center;
         padding: 1.5rem;
-        z-index: 300;
-        overscroll-behavior: contain;
-        touch-action: auto;
+        z-index: 25;
       }
 
       .modal.is-open {
@@ -1219,7 +873,6 @@
         inset: 0;
         background: rgba(15, 23, 42, 0.45);
         backdrop-filter: blur(3px);
-        touch-action: manipulation;
       }
 
       .modal__dialog {
@@ -1232,14 +885,11 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        touch-action: auto;
       }
 
       .modal__body {
         padding: clamp(1.25rem, 3vw, 2.5rem);
         overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
       }
 
       .modal-header {
@@ -1498,31 +1148,9 @@
         font-size: 0.85rem;
         color: var(--muted);
         padding: 2rem 1rem;
-        margin-left: calc(16.875rem + var(--sidebar-shell-offset) * 2);
-        transition: margin-left 280ms ease;
-      }
-
-      .layout:has(.vertical-sidebar:not(:has(:checked))) + footer {
-        margin-left: calc(3.35rem + var(--sidebar-shell-offset) * 2);
-      }
-
-      .layout:not(:has(.vertical-sidebar)) + footer {
-        margin-left: 0;
       }
 
       @media (max-width: 960px) {
-        #toast-container {
-          top: calc(var(--topbar-height) + 0.75rem);
-          left: 1rem;
-          right: 1rem;
-          max-width: none;
-        }
-
-        .toast {
-          min-width: 0;
-          width: 100%;
-        }
-
         nav {
           flex-direction: column;
           gap: 0.75rem;
@@ -1530,355 +1158,41 @@
         }
 
         .nav-left {
-          inline-size: 100%;
-          justify-content: space-between;
+          flex-direction: column;
+          align-items: flex-start;
           gap: 1rem;
         }
 
-        .nav-right {
-          inline-size: 100%;
-          display: flex;
-          justify-content: flex-start;
-        }
-
-        details.user-menu {
-          inline-size: 100%;
-        }
-
-        details.user-menu > summary {
-          inline-size: auto;
-          max-inline-size: min(100%, 12rem);
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .user-menu__dropdown {
-          left: 0;
-          right: auto;
-          inline-size: min(18rem, calc(100vw - 2rem));
-          max-inline-size: calc(100vw - 2rem);
-        }
-
-        .mobile-sidebar-toggle {
-          display: inline-flex;
-        }
-
         .layout {
-          gap: 0;
+          flex-direction: column;
         }
 
         .vertical-sidebar {
-          position: fixed;
-          inset: 0 auto 0 0;
-          z-index: 40;
-          inline-size: min(21rem, calc(100vw - 2.5rem));
-          min-block-size: 100vh;
-          padding: 0;
-          top: 0;
-          transform: translateX(-105%);
-          transition: transform 240ms ease;
+          inline-size: 100%;
+          padding-block: 1rem;
         }
 
         .vertical-sidebar nav {
-          inline-size: 100% !important;
-          min-inline-size: 100%;
-          block-size: 100vh;
-          border-radius: 0 1.2rem 1.2rem 0;
-          border-left: none;
-          padding-top: calc(var(--topbar-height) + 0.5rem);
-          flex-basis: auto !important;
-        }
-
-        .vertical-sidebar input:checked ~ nav {
-          transform: none;
-        }
-
-        .vertical-sidebar:has(:checked) {
-          transform: translateX(0);
-        }
-
-        .sidebar-mobile-backdrop {
-          display: block;
-          position: fixed;
-          inset: 0;
-          background: rgba(15, 23, 42, 0.4);
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 200ms ease;
-        }
-
-        .vertical-sidebar:has(:checked) .sidebar-mobile-backdrop {
-          opacity: 1;
-          pointer-events: auto;
-        }
-
-        .vertical-sidebar .sidebar__toggle-container {
-          justify-content: flex-end !important;
+          width: 100%;
+          flex-basis: 100% !important;
         }
 
         .vertical-sidebar [data-tooltip]::before {
           display: none;
         }
-
-        .vertical-sidebar:not(:has(:checked)) {
-          inline-size: min(21rem, calc(100vw - 2.5rem));
-        }
-
-        .vertical-sidebar:not(:has(:checked)) .sidebar__link,
-        .vertical-sidebar .sidebar__link {
-          justify-content: flex-start;
-          padding-inline: 0.6rem;
-          gap: 0.65rem;
-        }
-
-        .vertical-sidebar:not(:has(:checked)) .sidebar__link .text,
-        .vertical-sidebar:not(:has(:checked)) figcaption,
-        .vertical-sidebar:not(:has(:checked)) .sidebar__item--heading {
-          inline-size: auto;
-          block-size: auto;
-          overflow: visible;
-          opacity: 1;
-          transform: none;
-        }
-
-        .vertical-sidebar:not(:has(:checked)) figure {
-          min-block-size: 5.5rem;
-        }
-
-        .vertical-sidebar:not(:has(:checked)) .sidebar__avatar {
-          inline-size: 3rem;
-          font-size: 1.1rem;
-        }
-
-        main {
-          margin-left: 0;
-          padding-top: 1.5rem;
-        }
-
-        footer {
-          margin-left: 0;
-        }
-      }
-
-      .tour-launcher {
-        position: fixed;
-        right: 1.25rem;
-        bottom: 1.25rem;
-        z-index: 1990;
-        border: none;
-        border-radius: 999px;
-        background: #111827;
-        color: #fff;
-        font: inherit;
-        font-weight: 700;
-        padding: 0.85rem 1.2rem;
-        box-shadow: 0 18px 40px rgba(17, 24, 39, 0.24);
-        cursor: pointer;
-        transition: opacity 180ms ease, filter 180ms ease, transform 180ms ease, background 0.2s ease;
-      }
-
-      .tour-launcher svg {
-        inline-size: 1rem;
-        block-size: 1rem;
-        fill: currentColor;
-        flex: 0 0 auto;
-      }
-
-      .tour-launcher__label {
-        display: inline;
-      }
-
-      .tour-launcher:hover,
-      .tour-launcher:focus {
-        background: var(--brand);
-        outline: none;
-      }
-
-      .tour-overlay[hidden] {
-        display: none !important;
-      }
-
-      .tour-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 2000;
-        overflow: hidden;
-      }
-
-      .tour-backdrop {
-        position: absolute;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.58);
-        z-index: 2000;
-      }
-
-      .tour-popover {
-        position: fixed;
-        z-index: 2002;
-        width: min(24rem, calc(100vw - 2rem));
-        max-width: calc(100vw - 2rem);
-        max-height: calc(100vh - 2rem);
-        overflow: auto;
-        background: #ffffff;
-        border-radius: 1rem;
-        padding: 1rem;
-        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
-      }
-
-      .tour-kicker {
-        margin: 0 0 0.35rem;
-        color: var(--brand);
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-      }
-
-      .tour-popover h2 {
-        margin: 0;
-        font-size: 1.15rem;
-      }
-
-      .tour-popover p[data-tour-description] {
-        margin: 0.75rem 0 0;
-        color: var(--text);
-        line-height: 1.5;
-      }
-
-      .tour-caption {
-        margin: 0.75rem 0 0;
-        color: var(--muted);
-        font-size: 0.92rem;
-      }
-
-      .tour-progress {
-        margin-top: 0.85rem;
-        color: var(--muted);
-        font-size: 0.9rem;
-      }
-
-      .tour-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.65rem;
-        margin-top: 1rem;
-        flex-wrap: wrap;
-      }
-
-      .tour-btn {
-        border-radius: 999px;
-        padding: 0.65rem 1rem;
-        border: 1px solid rgba(15, 94, 240, 0.18);
-        background: #fff;
-        color: var(--text);
-        font: inherit;
-        font-weight: 600;
-        cursor: pointer;
-      }
-
-      .tour-btn--primary {
-        background: var(--brand);
-        border-color: var(--brand);
-        color: #fff;
-      }
-
-      .tour-btn--ghost:hover,
-      .tour-btn--ghost:focus {
-        border-color: var(--brand);
-        color: var(--brand);
-        outline: none;
-      }
-
-      .tour-btn--primary:hover,
-      .tour-btn--primary:focus {
-        background: var(--brand-dark);
-        outline: none;
-      }
-
-      .tour-highlight {
-        position: relative;
-        z-index: 2001 !important;
-        isolation: isolate;
-        border-radius: 1rem;
-        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.95), 0 0 0 9999px rgba(15, 23, 42, 0.45);
-      }
-
-      @media (max-width: 768px) {
-        .modal {
-          align-items: flex-end;
-          padding: 0.5rem;
-        }
-
-        .modal__dialog {
-          width: 100%;
-          max-height: min(88vh, 100%);
-          border-radius: 1.35rem 1.35rem 0 0;
-          box-shadow: 0 -18px 50px rgba(15, 94, 240, 0.18);
-        }
-
-        .modal__body {
-          padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
-        }
-
-        .tour-launcher {
-          right: 1rem;
-          left: auto;
-          bottom: 1rem;
-          inline-size: 3.15rem;
-          block-size: 3.15rem;
-          padding: 0;
-          display: inline-grid;
-          place-items: center;
-        }
-
-        .tour-launcher__label {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          padding: 0;
-          margin: -1px;
-          overflow: hidden;
-          clip: rect(0, 0, 0, 0);
-          border: 0;
-        }
-
-        .tour-popover {
-          width: calc(100vw - 2rem);
-          max-height: min(26rem, calc(100vh - 2rem));
-          left: 1rem !important;
-          right: 1rem;
-          top: auto !important;
-          bottom: 1rem;
-        }
-
-        .tour-actions {
-          justify-content: stretch;
-        }
-
-        .tour-btn {
-          flex: 1 1 8rem;
-          text-align: center;
-        }
       }
     </style>
     {% block extra_head %}{% endblock %}
   </head>
-  <body {% block body_attrs %}{% endblock %}>
+  <body>
     <nav>
       <div class="nav-left">
         <a class="brand" href="{% url 'home' %}">CoreQuote</a>
-        {% if user.is_authenticated %}
-          <label for="sidebar-toggle" class="mobile-sidebar-toggle" aria-label="Abrir menu lateral">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h15a1.5 1.5 0 1 1 0 3h-15A1.5 1.5 0 0 1 3 6.5Zm0 5.5A1.5 1.5 0 0 1 4.5 10h15a1.5 1.5 0 1 1 0 3h-15A1.5 1.5 0 0 1 3 12Zm1.5 5A1.5 1.5 0 1 0 4.5 20h9a1.5 1.5 0 1 0 0-3h-9Z"></path>
-            </svg>
-          </label>
-        {% endif %}
       </div>
       <div class="nav-right">
         {% if user.is_authenticated %}
           <details class="user-menu">
-            <summary data-tour-anchor="user-menu">{{ user.get_full_name|default:user.username }}</summary>
+            <summary>{{ user.get_full_name|default:user.username }}</summary>
             <div class="user-menu__dropdown">
               <a href="{% url 'accounts:profile' %}">Mis datos</a>
               <form method="post" action="{% url 'logout' %}">
@@ -1903,7 +1217,6 @@
             checked
             aria-label="Contraer menú lateral"
           />
-          <label for="sidebar-toggle" class="sidebar-mobile-backdrop" aria-hidden="true"></label>
           <nav aria-label="Navegación secundaria" class="sidebar_nav">
             <header>
               <div class="sidebar__toggle-container">
@@ -1957,7 +1270,6 @@
                   <li class="sidebar__item">
                     <a
                       href="{% url 'clients:list' %}"
-                      data-tour-anchor="clients-nav"
                       class="sidebar__link {% if active_app == 'clients' %}is-active{% endif %}"
                       data-tooltip="Clientes"
                       {% if active_app == 'clients' %}aria-current="page"{% endif %}
@@ -1976,7 +1288,6 @@
                   <li class="sidebar__item">
                     <a
                       href="{% url 'inventory:list' %}"
-                      data-tour-anchor="inventory-nav"
                       class="sidebar__link {% if active_app == 'inventory' %}is-active{% endif %}"
                       data-tooltip="Inventario"
                       {% if active_app == 'inventory' %}aria-current="page"{% endif %}
@@ -1990,7 +1301,6 @@
                   <li class="sidebar__item">
                     <a
                       href="{% url 'quotes:list' %}"
-                      data-tour-anchor="quotes-nav"
                       class="sidebar__link {% if active_app == 'quotes' %}is-active{% endif %}"
                       data-tooltip="Cotizaciones"
                       {% if active_app == 'quotes' %}aria-current="page"{% endif %}
@@ -2007,7 +1317,6 @@
                   <li class="sidebar__item">
                     <a
                       href="{% url 'reports:list' %}"
-                      data-tour-anchor="reports-nav"
                       class="sidebar__link {% if active_app == 'reports' %}is-active{% endif %}"
                       data-tooltip="Reportes"
                       {% if active_app == 'reports' %}aria-current="page"{% endif %}
@@ -2038,29 +1347,6 @@
     <footer>
       CoreQuote © {% now 'Y' %}. Simplifica la gestión de tus productos y cotizaciones.
     </footer>
-    {% if user.is_authenticated %}
-      <button type="button" class="tour-launcher" data-start-tour>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 2.75a8.75 8.75 0 1 0 8.75 8.75A8.76 8.76 0 0 0 12 2.75Zm0 14a1.1 1.1 0 1 1 1.1-1.1 1.1 1.1 0 0 1-1.1 1.1Zm1.45-5.62-.46.3a1.74 1.74 0 0 0-.79 1.47v.2a.75.75 0 0 1-1.5 0v-.2a3.23 3.23 0 0 1 1.48-2.73l.48-.32a1.69 1.69 0 0 0 .79-1.38 1.95 1.95 0 1 0-3.9 0 .75.75 0 0 1-1.5 0 3.45 3.45 0 1 1 6.9 0 3.18 3.18 0 0 1-1.5 2.66Z"></path>
-        </svg>
-        <span class="tour-launcher__label">Guia de uso</span>
-      </button>
-    {% endif %}
-    <div class="tour-overlay" data-tour-overlay hidden>
-      <div class="tour-backdrop" data-tour-close></div>
-      <div class="tour-popover" data-tour-popover role="dialog" aria-modal="true" aria-labelledby="tour-title">
-        <p class="tour-kicker">Tutorial</p>
-        <h2 id="tour-title" data-tour-title></h2>
-        <p data-tour-description></p>
-        <p class="tour-caption" data-tour-caption hidden></p>
-        <div class="tour-progress" data-tour-progress></div>
-        <div class="tour-actions">
-          <button type="button" class="tour-btn tour-btn--ghost" data-tour-prev>Anterior</button>
-          <button type="button" class="tour-btn tour-btn--ghost" data-tour-close>Cerrar</button>
-          <button type="button" class="tour-btn tour-btn--primary" data-tour-next>Siguiente</button>
-        </div>
-      </div>
-    </div>
     <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
     <script>
@@ -2456,137 +1742,6 @@
           });
         };
 
-        const enhanceFileInputs = (root) => {
-          const scope =
-            root && typeof root.querySelectorAll === "function" ? root : document;
-          const fileInputs = scope.querySelectorAll("input.file-input[type='file']");
-
-          fileInputs.forEach((input) => {
-            if (!(input instanceof HTMLInputElement)) return;
-            if (input.dataset.fileEnhanced === "true") return;
-
-            input.dataset.fileEnhanced = "true";
-
-            const wrapper = document.createElement("label");
-            wrapper.className = "file-dropzone";
-
-            const content = document.createElement("span");
-            content.className = "file-dropzone__content";
-
-            const title = document.createElement("span");
-            title.className = "file-dropzone__title";
-            title.textContent = "Arrastra tu archivo aqui o haz clic para seleccionarlo";
-
-            const hint = document.createElement("span");
-            hint.className = "file-dropzone__hint";
-            hint.textContent = "Formatos compatibles segun el campo. Suelta el archivo para cargarlo mas rapido.";
-
-            const meta = document.createElement("span");
-            meta.className = "file-dropzone__meta";
-
-            const pill = document.createElement("span");
-            pill.className = "file-dropzone__pill";
-            pill.textContent = input.accept ? input.accept.replace("image/*", "Imagen") : "Archivo";
-
-            const filename = document.createElement("span");
-            filename.className = "file-dropzone__filename";
-            filename.textContent = "Ningun archivo seleccionado";
-
-            meta.append(pill, filename);
-            content.append(title, hint, meta);
-
-            input.parentNode.insertBefore(wrapper, input);
-            wrapper.append(content, input);
-
-            const updateFileName = () => {
-              const file = input.files && input.files[0];
-              filename.textContent = file ? file.name : "Ningun archivo seleccionado";
-            };
-
-            ["dragenter", "dragover"].forEach((eventName) => {
-              wrapper.addEventListener(eventName, (event) => {
-                event.preventDefault();
-                wrapper.classList.add("is-dragover");
-              });
-            });
-
-            ["dragleave", "dragend", "drop"].forEach((eventName) => {
-              wrapper.addEventListener(eventName, (event) => {
-                event.preventDefault();
-                if (eventName === "dragleave" && event.target !== wrapper) return;
-                wrapper.classList.remove("is-dragover");
-              });
-            });
-
-            wrapper.addEventListener("drop", (event) => {
-              const files = event.dataTransfer?.files;
-              if (!files || !files.length) return;
-              const transfer = new DataTransfer();
-              transfer.items.add(files[0]);
-              input.files = transfer.files;
-              updateFileName();
-              input.dispatchEvent(new Event("change", { bubbles: true }));
-            });
-
-            input.addEventListener("change", updateFileName);
-            updateFileName();
-          });
-        };
-
-        const enhanceSidebar = () => {
-          const sidebarToggle = document.getElementById("sidebar-toggle");
-          const sidebar = document.querySelector(".vertical-sidebar");
-          if (!(sidebarToggle instanceof HTMLInputElement) || !sidebar) return;
-
-          const mobileMedia = window.matchMedia("(max-width: 960px)");
-          const syncSidebarMode = () => {
-            if (mobileMedia.matches) {
-              sidebarToggle.checked = false;
-            } else if (!sidebarToggle.dataset.desktopStateApplied) {
-              sidebarToggle.checked = true;
-              sidebarToggle.dataset.desktopStateApplied = "true";
-            }
-          };
-
-          syncSidebarMode();
-          mobileMedia.addEventListener("change", syncSidebarMode);
-
-          sidebar.addEventListener("click", (event) => {
-            const link = event.target.closest?.(".sidebar__link");
-            if (link && mobileMedia.matches) {
-              sidebarToggle.checked = false;
-            }
-          });
-        };
-
-        const enhanceResponsiveTables = (root) => {
-          const scope =
-            root && typeof root.querySelectorAll === "function" ? root : document;
-          const tables = scope.querySelectorAll(".table-wrapper:not(.mini) table");
-
-          tables.forEach((table) => {
-            if (!(table instanceof HTMLTableElement)) return;
-            const headers = Array.from(table.querySelectorAll("thead th")).map((header) =>
-              (header.textContent || "").trim()
-            );
-            if (!headers.length) return;
-
-            table.querySelectorAll("tbody tr").forEach((row) => {
-              Array.from(row.children).forEach((cell, index) => {
-                if (!(cell instanceof HTMLTableCellElement)) return;
-                if (cell.hasAttribute("colspan")) {
-                  cell.removeAttribute("data-label");
-                  return;
-                }
-                const label = headers[index] || "";
-                if (label) {
-                  cell.setAttribute("data-label", label);
-                }
-              });
-            });
-          });
-        };
-
         const showConfirmation = (element, message) => {
           const title = element.dataset.confirmTitle || "¿Estás seguro?";
           const icon = element.dataset.confirmIcon || "warning";
@@ -2620,67 +1775,16 @@
           });
         };
 
-        const setRequestState = (element, pending) => {
-          if (!(element instanceof HTMLElement)) return;
-          const label = element.dataset.loadingLabel;
-          if (!label) return;
-
-          if (!element.dataset.originalLabel) {
-            element.dataset.originalLabel = element.innerHTML;
-          }
-
-          if (pending) {
-            element.classList.add("is-pending");
-            element.setAttribute("aria-busy", "true");
-            element.setAttribute("disabled", "disabled");
-            element.innerHTML = `<span class="request-spinner" aria-hidden="true"></span>${label}`;
-            if (element.dataset.pendingToastShown !== "true" && element.dataset.pendingToast) {
-              showToast({ message: element.dataset.pendingToast, type: "info" });
-              element.dataset.pendingToastShown = "true";
-            }
-            return;
-          }
-
-          element.classList.remove("is-pending");
-          element.removeAttribute("aria-busy");
-          if (!element.dataset.wasDisabledInitially) {
-            element.removeAttribute("disabled");
-          }
-          if (element.dataset.originalLabel) {
-            element.innerHTML = element.dataset.originalLabel;
-          }
-          delete element.dataset.pendingToastShown;
-        };
-
         const requestFromTrigger = (trigger) => {
           const deleteUrl = trigger.getAttribute("hx-delete");
           const getUrl = trigger.getAttribute("hx-get");
-          const postUrl = trigger.getAttribute("hx-post");
-          let method = "GET";
-          let url = getUrl;
-
-          if (deleteUrl) {
-            method = "DELETE";
-            url = deleteUrl;
-          } else if (postUrl) {
-            method = "POST";
-            url = postUrl;
-          }
-
+          const method = deleteUrl ? "DELETE" : "GET";
+          const url = deleteUrl || getUrl;
           if (!url) return;
           const swap = trigger.getAttribute("hx-swap") || "innerHTML";
           const target = resolveTarget(trigger);
-          const wasDisabledInitially = trigger.hasAttribute("disabled");
-          if (wasDisabledInitially) {
-            trigger.dataset.wasDisabledInitially = "true";
-          } else {
-            delete trigger.dataset.wasDisabledInitially;
-          }
 
-          setRequestState(trigger, true);
-          void sendRequest(trigger, { method, url, target, swap }).finally(() => {
-            setRequestState(trigger, false);
-          });
+          void sendRequest(trigger, { method, url, target, swap });
         };
 
         let activeModalTrigger = null;
@@ -2713,8 +1817,6 @@
           if (!modal) return;
           modal.classList.add("is-open");
           modal.setAttribute("aria-hidden", "false");
-          document.body.classList.add("has-app-modal");
-          document.body.classList.add("modal-lock");
           focusFirstField(modal);
         };
 
@@ -2722,10 +1824,6 @@
           if (!modal) return;
           modal.classList.remove("is-open");
           modal.setAttribute("aria-hidden", "true");
-          if (!document.querySelector(".modal.is-open")) {
-            document.body.classList.remove("has-app-modal");
-            document.body.classList.remove("modal-lock");
-          }
           if (activeModalTrigger && document.body.contains(activeModalTrigger)) {
             activeModalTrigger.focus();
           }
@@ -2733,7 +1831,7 @@
         };
 
         document.body.addEventListener("click", (event) => {
-          const trigger = event.target.closest?.("[hx-get], [hx-delete], [hx-post]");
+          const trigger = event.target.closest?.("[hx-get], [hx-delete]");
           if (!trigger) return;
           if (trigger instanceof HTMLFormElement) return;
           if (trigger.hasAttribute("disabled") || trigger.dataset.disabled !== undefined) {
@@ -2820,8 +1918,6 @@
         document.body.addEventListener("htmx:afterSwap", (event) => {
           if (!(event.target instanceof HTMLElement)) return;
           enhanceQuoteForms(event.target);
-          enhanceFileInputs(event.target);
-          enhanceResponsiveTables(event.target);
           if (event.target.classList.contains("modal__body")) {
             const modal = findModal(event.target);
             if (modal) {
@@ -2923,281 +2019,6 @@
         });
 
         enhanceQuoteForms(document);
-        enhanceFileInputs(document);
-        enhanceSidebar();
-        enhanceResponsiveTables(document);
-      })();
-    </script>
-    <script>
-      (function () {
-        const launcher = document.querySelector("[data-start-tour]");
-        const overlay = document.querySelector("[data-tour-overlay]");
-        const popover = document.querySelector("[data-tour-popover]");
-        const title = document.querySelector("[data-tour-title]");
-        const description = document.querySelector("[data-tour-description]");
-        const caption = document.querySelector("[data-tour-caption]");
-        const progress = document.querySelector("[data-tour-progress]");
-        const prevButton = document.querySelector("[data-tour-prev]");
-        const nextButton = document.querySelector("[data-tour-next]");
-        const closeButtons = document.querySelectorAll("[data-tour-close]");
-
-        if (!launcher || !overlay || !popover) return;
-
-        const page = document.body.dataset.page || "default";
-        const tourMap = {
-          home: [
-            {
-              selector: "[data-tour-anchor='user-menu']",
-              title: "Empieza por tu cuenta",
-              description: "Desde este menú puedes entrar a Mis datos para configurar razón social, RFC, logo y correo de contacto.",
-              caption: "Esa información se usa luego en cotizaciones y PDFs."
-            },
-            {
-              selector: "[data-tour-anchor='clients-nav']",
-              title: "Paso 1: registra clientes",
-              description: "Primero carga a quién le vas a vender. Cada cotización necesita un cliente asociado.",
-              caption: "Si el cliente no existe, el flujo comercial queda incompleto."
-            },
-            {
-              selector: "[data-tour-anchor='inventory-nav']",
-              title: "Paso 2: carga inventario",
-              description: "Aquí registras los productos, stock y costo que alimentan tus cotizaciones.",
-              caption: "El costo sirve también para estimar márgenes."
-            },
-            {
-              selector: "[data-tour-anchor='quotes-nav']",
-              title: "Paso 3: genera cotizaciones",
-              description: "En esta sección combinas cliente y productos para crear propuestas listas para compartir.",
-              caption: "Es la pantalla central del sistema."
-            },
-            {
-              selector: "[data-tour-anchor='reports-nav']",
-              title: "Paso 4: documenta seguimiento",
-              description: "Usa reportes para guardar resúmenes, acuerdos u observaciones del equipo.",
-              caption: "Funciona como bitácora operativa."
-            },
-            {
-              selector: "[data-tour-anchor='quick-start']",
-              title: "Resumen siempre visible",
-              description: "Este bloque resume el flujo de uso para nuevos usuarios y sirve como referencia rápida.",
-              caption: "Puedes volver a abrir el tour desde el botón flotante."
-            }
-          ],
-          profile: [
-            {
-              selector: "[data-tour-anchor='profile-company-form']",
-              title: "Configura tu identidad fiscal",
-              description: "Llena razón social, RFC, domicilio, correo y logo una sola vez.",
-              caption: "Estos datos aparecen después en tus cotizaciones."
-            },
-            {
-              selector: "[data-tour-anchor='profile-account-button']",
-              title: "Gestiona tu cuenta",
-              description: "Aquí puedes actualizar tus datos personales o cambiar la contraseña.",
-              caption: "Es útil cuando cambia el responsable comercial."
-            },
-            {
-              selector: "[data-tour-anchor='profile-logo']",
-              title: "Valida tu branding",
-              description: "Revisa el logotipo actual antes de generar documentos para clientes.",
-              caption: "Conviene usar una imagen ligera y legible."
-            }
-          ],
-          clients: [
-            {
-              selector: "[data-tour-anchor='client-create']",
-              title: "Alta de clientes",
-              description: "Este botón abre el modal para registrar nombre y correo del cliente sin quitar espacio al listado.",
-              caption: "Mantener este catálogo limpio evita duplicados."
-            },
-            {
-              selector: "#clients-table-body",
-              title: "Historial y acciones",
-              description: "Aquí ves los clientes guardados y las acciones para corregir o actualizar su información.",
-              caption: "Úsalo como fuente única de clientes."
-            }
-          ],
-          inventory: [
-            {
-              selector: "[data-tour-anchor='item-create']",
-              title: "Carga tu catálogo",
-              description: "Este botón abre el modal para definir SKU, nombre, stock y costo de cada producto.",
-              caption: "El costo es la base para estimar utilidad."
-            },
-            {
-              selector: "#inventory-table-body",
-              title: "Controla existencias",
-              description: "La tabla te deja revisar rápidamente qué productos están listos para cotizar y cuáles necesitan ajuste.",
-              caption: "Actualizar el stock evita vender algo que ya no tienes."
-            }
-          ],
-          quotes: [
-            {
-              selector: "[data-tour-anchor='quote-create']",
-              title: "Abre una nueva cotización",
-              description: "Este botón abre el formulario donde eliges cliente, estado y productos incluidos.",
-              caption: "Para que el flujo sea ágil, conviene tener clientes e inventario capturados antes."
-            },
-            {
-              selector: "#quotes-table-body",
-              title: "Da seguimiento al historial",
-              description: "Aquí quedan todas las cotizaciones para revisar totales, estatus y acciones posteriores.",
-              caption: "Te ayuda a distinguir propuestas activas, cerradas o pendientes."
-            }
-          ],
-          reports: [
-            {
-              selector: "[data-tour-anchor='report-create']",
-              title: "Crea un nuevo reporte",
-              description: "Este botón abre un modal para registrar hallazgos, acuerdos o resúmenes sin sacrificar espacio en el historial.",
-              caption: "La tabla queda libre para revisar más información al mismo tiempo."
-            },
-            {
-              selector: "#reports-table-body",
-              title: "Consulta el historial",
-              description: "La tabla reúne los reportes creados para buscarlos, editarlos o retomarlos más tarde.",
-              caption: "Toda la información queda centralizada."
-            }
-          ],
-          default: [
-            {
-              selector: "[data-tour-anchor='clients-nav']",
-              title: "Navegación principal",
-              description: "Desde aquí recorres el flujo completo del sistema: clientes, inventario, cotizaciones y reportes."
-            }
-          ]
-        };
-
-        let steps = [];
-        let index = 0;
-        let activeElement = null;
-
-        const clearHighlight = () => {
-          if (!activeElement) return;
-          activeElement.classList.remove("tour-highlight");
-          activeElement = null;
-        };
-
-        const closeTour = () => {
-          clearHighlight();
-          overlay.hidden = true;
-        };
-
-        const resolveSteps = () => {
-          const planned = tourMap[page] || tourMap.default;
-          return planned.filter((step) => document.querySelector(step.selector));
-        };
-
-        const placePopover = (element) => {
-          const margin = 16;
-          const rect = element.getBoundingClientRect();
-          const popoverWidth = Math.min(384, window.innerWidth - margin * 2);
-          const centeredLeft = rect.left + rect.width / 2 - popoverWidth / 2;
-          const maxLeft = window.innerWidth - popoverWidth - margin;
-          const left = Math.max(margin, Math.min(centeredLeft, maxLeft));
-
-          popover.style.width = `${popoverWidth}px`;
-
-          if (window.innerWidth <= 768) {
-            popover.style.left = `${margin}px`;
-            popover.style.right = `${margin}px`;
-            popover.style.top = "auto";
-            popover.style.bottom = `${margin}px`;
-            return;
-          }
-
-          const popoverHeight = Math.min(popover.offsetHeight || 320, window.innerHeight - margin * 2);
-          const fitsBelow = rect.bottom + 12 + popoverHeight <= window.innerHeight - margin;
-          const preferredTop = fitsBelow
-            ? rect.bottom + 12
-            : rect.top - popoverHeight - 12;
-          const top = Math.max(margin, Math.min(preferredTop, window.innerHeight - popoverHeight - margin));
-
-          popover.style.left = `${left}px`;
-          popover.style.top = `${top}px`;
-          popover.style.bottom = "auto";
-          popover.style.right = "auto";
-        };
-
-        const render = () => {
-          clearHighlight();
-          const step = steps[index];
-          if (!step) {
-            closeTour();
-            return;
-          }
-
-          const element = document.querySelector(step.selector);
-          if (!element) {
-            index += 1;
-            render();
-            return;
-          }
-
-          activeElement = element;
-          element.classList.add("tour-highlight");
-          element.scrollIntoView({
-            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-            block: "center",
-            inline: "nearest"
-          });
-
-          title.textContent = step.title;
-          description.textContent = step.description;
-          caption.textContent = step.caption || "";
-          caption.hidden = !step.caption;
-          progress.textContent = `Paso ${index + 1} de ${steps.length}`;
-          prevButton.hidden = index === 0;
-          nextButton.textContent = index === steps.length - 1 ? "Finalizar" : "Siguiente";
-
-          window.setTimeout(() => placePopover(element), 180);
-        };
-
-        const openTour = () => {
-          steps = resolveSteps();
-          if (!steps.length) return;
-          index = 0;
-          overlay.hidden = false;
-          render();
-        };
-
-        launcher.addEventListener("click", openTour);
-        prevButton.addEventListener("click", () => {
-          if (index > 0) {
-            index -= 1;
-            render();
-          }
-        });
-        nextButton.addEventListener("click", () => {
-          if (index >= steps.length - 1) {
-            closeTour();
-            return;
-          }
-          index += 1;
-          render();
-        });
-        closeButtons.forEach((button) => button.addEventListener("click", closeTour));
-        window.addEventListener("resize", () => {
-          if (!overlay.hidden && activeElement) {
-            placePopover(activeElement);
-          }
-        });
-        window.addEventListener("scroll", () => {
-          if (!overlay.hidden && activeElement) {
-            placePopover(activeElement);
-          }
-        }, { passive: true });
-        document.addEventListener("keydown", (event) => {
-          if (overlay.hidden) return;
-          if (event.key === "Escape") closeTour();
-          if (event.key === "ArrowRight") nextButton.click();
-          if (event.key === "ArrowLeft" && !prevButton.hidden) prevButton.click();
-        });
-
-        if (page === "home" && !window.sessionStorage.getItem("corequote-tour-seen")) {
-          window.sessionStorage.setItem("corequote-tour-seen", "1");
-          window.requestAnimationFrame(openTour);
-        }
       })();
     </script>
     {% block extra_body %}{% endblock %}

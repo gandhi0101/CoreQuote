@@ -7,15 +7,6 @@
   <td class="row-actions">
     <button
       class="link"
-      hx-post="{% url 'quotes:send' quote.pk %}"
-      hx-swap="none"
-      data-loading-label="Enviando..."
-      data-pending-toast="Enviando cotización..."
-      {% if not gmail_ready or not quote.client.email %}disabled{% endif %}
-      title="{% if not quote.client.email %}El cliente no tiene correo registrado.{% elif not gmail_ready %}Configura Gmail en Mis datos para habilitar envíos.{% else %}Enviar cotización al cliente{% endif %}"
-    >Enviar</button>
-    <button
-      class="link"
       hx-get="{% url 'quotes:edit' quote.pk %}"
       hx-target="#quote-modal-body"
       hx-swap="innerHTML"

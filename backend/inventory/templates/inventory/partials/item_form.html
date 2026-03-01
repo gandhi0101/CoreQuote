@@ -1,7 +1,15 @@
 <div class="form-panel" data-form-mode="{% if item %}edit{% else %}create{% endif %}">
   <div class="form-panel__header">
-    <h2 id="item-modal-title">{% if item %}Editar producto{% else %}Nuevo producto{% endif %}</h2>
-    <button type="button" class="link" data-modal-dismiss>Cerrar</button>
+    <h2>{% if item %}Editar producto{% else %}Nuevo producto{% endif %}</h2>
+    {% if item %}
+      <button
+        type="button"
+        class="link"
+        hx-get="{% url 'inventory:create' %}"
+        hx-target="#item-form-container"
+        hx-swap="innerHTML"
+      >Cancelar edición</button>
+    {% endif %}
   </div>
   <form
     method="post"
@@ -12,7 +20,7 @@
       action="{% url 'inventory:create' %}"
       hx-post="{% url 'inventory:create' %}"
     {% endif %}
-    hx-target="#item-modal-body"
+    hx-target="#item-form-container"
     hx-swap="innerHTML"
     class="stacked-form"
   >
@@ -54,7 +62,6 @@
     {% endif %}
     <div class="form-actions">
       <button type="submit" class="primary">{% if item %}Guardar cambios{% else %}Guardar producto{% endif %}</button>
-      <button type="button" class="secondary" data-modal-dismiss>Cancelar</button>
     </div>
   </form>
 </div>

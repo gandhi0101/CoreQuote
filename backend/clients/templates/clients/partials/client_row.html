@@ -5,19 +5,9 @@
   <td class="row-actions">
     <button
       class="link"
-      hx-get="{% url 'clients:email' client.pk %}"
-      hx-target="#client-email-modal-body"
-      hx-swap="innerHTML"
-      data-modal-trigger="#client-email-modal"
-      {% if not client.email %}disabled{% endif %}
-      title="{% if not client.email %}El cliente no tiene correo registrado.{% elif not gmail_ready %}Gmail necesita reconectarse desde Mis datos.{% else %}Redactar correo al cliente{% endif %}"
-    >Correo</button>
-    <button
-      class="link"
       hx-get="{% url 'clients:update' client.pk %}"
-      hx-target="#client-modal-body"
+      hx-target="#client-form-container"
       hx-swap="innerHTML"
-      data-modal-trigger="#client-modal"
     >Editar</button>
     <button
       class="link danger"
