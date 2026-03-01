@@ -1,3 +1,5 @@
+from functools import wraps
+from pathlib import Path
 from urllib.parse import quote
 
 from django.conf import settings
@@ -8,6 +10,8 @@ from django.db import connection
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.staticfiles import finders
+from django.contrib.staticfiles.storage import staticfiles_storage
 
 from .forms import (
     CompanyProfileForm,
@@ -25,6 +29,17 @@ from .gmail import (
     send_test_email,
 )
 from .models import CompanyProfile, GmailServiceConfiguration
+
+
+def superuser_required(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_superuser:
+            messages.error(request, "Solo los superusuarios pueden acceder a este diagnóstico.")
+            return redirect("accounts:profile")
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
 
 
 def get_gmail_settings():
@@ -296,3 +311,51 @@ def gmail_disconnect(request):
     configuration.save()
     messages.success(request, "La conexión de Gmail se eliminó del panel administrativo.")
     return redirect("accounts:profile")
+
+
+@login_required
+@superuser_required
+def admin_debug(request):
+    static_root = Path(settings.STATIC_ROOT)
+    admin_assets = [
+        "admin/css/base.css",
+        "admin/css/nav_sidebar.css",
+        "admin/js/theme.js",
+        "admin/js/nav_sidebar.js",
+    ]
+    asset_checks = []
+    for asset in admin_assets:
+        finder_path = finders.find(asset)
+        try:
+            storage_url = staticfiles_storage.url(asset)
+        except Exception as exc:
+            storage_url = f"ERROR: {exc}"
+
+        static_root_file = static_root / asset
+        asset_checks.append(
+            {
+                "asset": asset,
+                "finder_path": finder_path or "",
+                "finder_exists": bool(finder_path),
+                "static_root_path": str(static_root_file),
+                "static_root_exists": static_root_file.exists(),
+                "storage_url": storage_url,
+            }
+        )
+
+    context = {
+        "diagnostics": {
+            "debug": settings.DEBUG,
+            "allowed_hosts": settings.ALLOWED_HOSTS,
+            "static_url": settings.STATIC_URL,
+            "static_root": str(static_root),
+            "static_root_exists": static_root.exists(),
+            "static_root_is_dir": static_root.is_dir(),
+            "app_base_url": getattr(settings, "APP_BASE_URL", ""),
+            "request_scheme": request.scheme,
+            "request_host": request.get_host(),
+            "admin_index_url": request.build_absolute_uri(reverse("admin:index")),
+        },
+        "asset_checks": asset_checks,
+    }
+    return render(request, "accounts/admin_debug.html", context)
