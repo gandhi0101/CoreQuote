@@ -12,7 +12,7 @@ ENV DJANGO_SUPERUSER_USERNAME=admin \
 WORKDIR /app
 # deps de sistema para psycopg
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libpq-dev && rm -rf /var/lib/apt/lists/*
+    build-essential libpq-dev netcat-openbsd && rm -rf /var/lib/apt/lists/*
 
 # instala requirements primero (cache de capas)
 COPY backend/requirements.txt /app/requirements.txt
@@ -26,7 +26,6 @@ EXPOSE 8000
 
 # por defecto: dev server (claro y directo)
 #CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-# para producción, usar gunicorn (más robusto)
-CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 90"]
-
-
+# para producción, usar el arranque completo con migraciones y collectstatic
+RUN chmod +x /app/start.sh
+CMD ["/app/start.sh"]
