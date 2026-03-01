@@ -15,3 +15,20 @@ class ClientForm(forms.ModelForm):
             "name": "Nombre",
             "email": "Correo electrónico",
         }
+
+
+class ClientEmailForm(forms.Form):
+    subject = forms.CharField(
+        label="Asunto",
+        max_length=160,
+        widget=forms.TextInput(attrs={"placeholder": "Asunto del correo"}),
+    )
+    message = forms.CharField(
+        label="Mensaje",
+        widget=forms.Textarea(
+            attrs={
+                "rows": 8,
+                "placeholder": "Escribe el mensaje que quieres enviar al cliente.",
+            }
+        ),
+    )

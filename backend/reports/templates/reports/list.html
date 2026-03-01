@@ -1,31 +1,244 @@
 {% extends "base.html" %}
 
 {% block title %}Reportes · CoreQuote{% endblock %}
+{% block body_attrs %}data-page="reports"{% endblock %}
+{% block extra_head %}
+  <style>
+    .reports-shell {
+      display: grid;
+      gap: 1.75rem;
+    }
+
+    .reports-hero {
+      background:
+        radial-gradient(circle at top right, rgba(15, 94, 240, 0.16), transparent 28%),
+        linear-gradient(135deg, #ffffff 0%, #f7faff 100%);
+      border-radius: 1.4rem;
+      padding: clamp(1.4rem, 3vw, 2rem);
+      box-shadow: 0 22px 50px rgba(15, 94, 240, 0.08);
+      display: grid;
+      gap: 1.2rem;
+    }
+
+    .reports-hero__top {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: start;
+      flex-wrap: wrap;
+    }
+
+    .reports-hero h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 2.7rem);
+    }
+
+    .reports-hero p {
+      margin: 0.5rem 0 0;
+      max-width: 62ch;
+      color: var(--muted);
+    }
+
+    .reports-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(15, 94, 240, 0.1);
+      color: var(--brand);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .reports-stats {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .reports-stat {
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(15, 94, 240, 0.08);
+      border-radius: 1rem;
+      padding: 1rem 1.1rem;
+      display: grid;
+      gap: 0.3rem;
+    }
+
+    .reports-stat__label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .reports-stat__value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--text);
+    }
+
+    .reports-stat__hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .reports-form-note {
+      margin: -0.5rem 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.55;
+    }
+
+    .reports-list-card {
+      display: grid;
+      gap: 1.1rem;
+      max-width: none;
+      width: 100%;
+    }
+
+    .reports-table-intro {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .report-title-cell {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .report-title-cell__name {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .report-title-cell__meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .report-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(15, 94, 240, 0.08);
+      color: var(--brand);
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .report-description-cell {
+      min-width: 28rem;
+      max-width: 52rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .report-timestamp {
+      color: var(--muted);
+      white-space: nowrap;
+      font-size: 0.92rem;
+    }
+
+    .reports-table-card table tbody tr:hover {
+      background: rgba(15, 94, 240, 0.03);
+    }
+
+    .reports-table-card table td {
+      vertical-align: top;
+    }
+
+    .reports-empty-panel {
+      padding: 2.2rem 1rem;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .reports-empty-panel strong {
+      display: block;
+      color: var(--text);
+      font-size: 1rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .reports-modal .modal__dialog {
+      width: min(760px, 100%);
+    }
+  </style>
+{% endblock %}
 
 {% block content %}
-<section class="page-header">
-  <div>
-    <h1>Reportes</h1>
-    <p class="muted">Guarda resúmenes y hallazgos clave para tu equipo.</p>
-  </div>
-</section>
-<div class="two-column">
-  <section class="card">
-    <div id="report-form-container">
-      {% include "reports/partials/report_form.html" with form=form %}
+<div class="reports-shell">
+  <section class="reports-hero">
+    <div class="reports-hero__top">
+      <div>
+        <span class="reports-badge">Bitácora interna</span>
+        <h1>Reportes</h1>
+        <p>Documenta hallazgos, acuerdos y contexto operativo para que tu equipo siempre tenga una referencia clara de lo que pasó y qué sigue.</p>
+      </div>
+      {% if latest_report %}
+        <div class="reports-badge">Último: {{ latest_report.created_at|date:"d M Y · H:i" }}</div>
+      {% endif %}
+    </div>
+    <div class="reports-stats">
+      <article class="reports-stat">
+        <span class="reports-stat__label">Reportes creados</span>
+        <p class="reports-stat__value">{{ report_count }}</p>
+        <p class="reports-stat__hint">Entradas disponibles para consulta y seguimiento.</p>
+      </article>
+      <article class="reports-stat">
+        <span class="reports-stat__label">Con descripción</span>
+        <p class="reports-stat__value">{{ reports_with_description_count }}</p>
+        <p class="reports-stat__hint">Reportes con contexto adicional para el equipo.</p>
+      </article>
+      <article class="reports-stat">
+        <span class="reports-stat__label">Última actividad</span>
+        <p class="reports-stat__value">
+          {% if latest_report %}{{ latest_report.created_at|date:"d/m" }}{% else %}--{% endif %}
+        </p>
+        <p class="reports-stat__hint">
+          {% if latest_report %}{{ latest_report.name|truncatechars:58 }}{% else %}Aún no hay actividad registrada.{% endif %}
+        </p>
+      </article>
     </div>
   </section>
-  <section class="card table-card">
+
+  <section class="card table-card reports-list-card reports-table-card">
     <div class="table-header">
-      <h2>Historial</h2>
+      <div>
+        <h2>Historial</h2>
+        <p class="reports-table-intro">Consulta, ajusta o elimina reportes recientes desde una sola vista.</p>
+      </div>
+      <a
+        class="primary"
+        data-tour-anchor="report-create"
+        href="{% url 'reports:create' %}"
+        hx-get="{% url 'reports:create' %}"
+        hx-target="#report-modal-body"
+        hx-swap="innerHTML"
+        data-modal-trigger="#report-modal"
+      >Nuevo reporte</a>
     </div>
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Creado</th>
+            <th>Reporte</th>
+            <th>Resumen</th>
+            <th>Fecha</th>
             <th class="actions">Acciones</th>
           </tr>
         </thead>
@@ -33,13 +246,18 @@
           {% for report in reports %}
             {% include "reports/partials/report_row.html" with report=report %}
           {% empty %}
-            <tr>
-              <td colspan="4" class="empty">Todavía no has creado reportes.</td>
-            </tr>
+            {% include "reports/partials/report_empty_row.html" %}
           {% endfor %}
         </tbody>
       </table>
     </div>
   </section>
+</div>
+
+<div id="report-modal" class="modal reports-modal" aria-hidden="true">
+  <div class="modal__backdrop" data-modal-dismiss></div>
+  <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="report-modal-title">
+    <div id="report-modal-body" class="modal__body"></div>
+  </div>
 </div>
 {% endblock %}

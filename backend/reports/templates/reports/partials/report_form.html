@@ -1,16 +1,15 @@
 <div class="form-panel" data-form-mode="{% if report %}edit{% else %}create{% endif %}">
   <div class="form-panel__header">
-    <h2>{% if report %}Editar reporte{% else %}Nuevo reporte{% endif %}</h2>
-    {% if report %}
-      <button
-        type="button"
-        class="link"
-        hx-get="{% url 'reports:create' %}"
-        hx-target="#report-form-container"
-        hx-swap="innerHTML"
-      >Cancelar edición</button>
-    {% endif %}
+    <h2 id="report-modal-title">{% if report %}Editar reporte{% else %}Nuevo reporte{% endif %}</h2>
+    <button type="button" class="link" data-modal-dismiss>Cerrar</button>
   </div>
+  <p class="reports-form-note">
+    {% if report %}
+      Ajusta el nombre o el contexto para mantener el historial claro y útil para el equipo.
+    {% else %}
+      Usa este formulario para registrar acuerdos, hallazgos o cualquier resumen operativo que necesites consultar después.
+    {% endif %}
+  </p>
   <form
     method="post"
     {% if report %}
@@ -20,7 +19,7 @@
       action="{% url 'reports:create' %}"
       hx-post="{% url 'reports:create' %}"
     {% endif %}
-    hx-target="#report-form-container"
+    hx-target="#report-modal-body"
     hx-swap="innerHTML"
     class="stacked-form"
   >
@@ -35,6 +34,7 @@
     <div class="form-field">
       <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
       {{ form.description }}
+      <small class="muted">Describe qué ocurrió, por qué importa y cuál sería el siguiente paso recomendado.</small>
       {% if form.description.errors %}
         <p class="error">{{ form.description.errors|join:', ' }}</p>
       {% endif %}
@@ -46,6 +46,7 @@
     {% endif %}
     <div class="form-actions">
       <button type="submit" class="primary">{% if report %}Guardar cambios{% else %}Guardar reporte{% endif %}</button>
+      <button type="button" class="secondary" data-modal-dismiss>Cancelar</button>
     </div>
   </form>
 </div>

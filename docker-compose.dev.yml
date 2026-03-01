@@ -1,11 +1,10 @@
 services:
   web:
+    env_file: .env
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: >
-      sh -c "python manage.py migrate --noinput &&
-      python manage.py runserver 0.0.0.0:8000"
+    command: sh /app/start-dev.sh
     volumes:
       - ./backend:/app
     environment:

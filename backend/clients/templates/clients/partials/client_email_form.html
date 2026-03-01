@@ -1,0 +1,65 @@
+<div class="stacked-form">
+  <div class="modal-header">
+    <div>
+      <h2 id="client-email-modal-title">Redactar correo</h2>
+      <p class="muted">Enviarás el mensaje a {{ client.name }}{% if client.email %} ({{ client.email }}){% endif %}.</p>
+    </div>
+    <a href="{% url 'clients:list' %}" class="link" data-modal-dismiss>Cerrar</a>
+  </div>
+
+  <form
+    method="post"
+    action="{% url 'clients:email' client.pk %}"
+    hx-post="{% url 'clients:email' client.pk %}"
+    hx-target="#client-email-modal-body"
+    hx-swap="innerHTML"
+    class="stacked-form"
+  >
+    {% csrf_token %}
+
+    {% if not gmail_ready %}
+      <div class="form-errors">
+        <p>Gmail no está listo para enviar correos. Vuelve a conectar la cuenta desde <strong>Mis datos</strong> y luego intenta de nuevo.</p>
+      </div>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+      <div class="form-errors">
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="form-field">
+      <label for="{{ form.subject.id_for_label }}">{{ form.subject.label }}</label>
+      {{ form.subject }}
+      {% for error in form.subject.errors %}
+        <p class="field-error">{{ error }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="form-field">
+      <label for="{{ form.message.id_for_label }}">{{ form.message.label }}</label>
+      {{ form.message }}
+      {% for error in form.message.errors %}
+        <p class="field-error">{{ error }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="form-actions">
+      {% if gmail_ready %}
+        <button
+          type="submit"
+          class="primary"
+          data-loading-label="Enviando..."
+          data-pending-toast="Enviando correo al cliente..."
+        >Enviar correo</button>
+      {% else %}
+        <a class="primary" href="{% url 'accounts:profile' %}">Ir a Mis datos</a>
+        <a class="secondary" href="{% url 'accounts:gmail_connect' %}">Reconectar Gmail</a>
+      {% endif %}
+      <button type="button" class="secondary" data-modal-dismiss>Cancelar</button>
+    </div>
+  </form>
+</div>

@@ -1,23 +1,139 @@
 {% extends "base.html" %}
 
 {% block title %}Inventario · CoreQuote{% endblock %}
+{% block body_attrs %}data-page="inventory"{% endblock %}
+{% block extra_head %}
+  <style>
+    .module-shell {
+      display: grid;
+      gap: 1.75rem;
+    }
+
+    .module-hero {
+      background:
+        radial-gradient(circle at top right, rgba(15, 94, 240, 0.16), transparent 28%),
+        linear-gradient(135deg, #ffffff 0%, #f7faff 100%);
+      border-radius: 1.4rem;
+      padding: clamp(1.4rem, 3vw, 2rem);
+      box-shadow: 0 22px 50px rgba(15, 94, 240, 0.08);
+      display: grid;
+      gap: 1.2rem;
+    }
+
+    .module-hero__top {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: start;
+      flex-wrap: wrap;
+    }
+
+    .module-hero h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 2.7rem);
+    }
+
+    .module-hero p {
+      margin: 0.5rem 0 0;
+      max-width: 62ch;
+      color: var(--muted);
+    }
+
+    .module-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(15, 94, 240, 0.1);
+      color: var(--brand);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .module-stats {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .module-stat {
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(15, 94, 240, 0.08);
+      border-radius: 1rem;
+      padding: 1rem 1.1rem;
+      display: grid;
+      gap: 0.3rem;
+    }
+
+    .module-stat__label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .module-stat__value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--text);
+    }
+
+    .module-stat__hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .module-table-card {
+      max-width: none;
+      width: 100%;
+    }
+  </style>
+{% endblock %}
 
 {% block content %}
-<section class="page-header">
-  <div>
-    <h1>Inventario</h1>
-    <p class="muted">Administra los productos disponibles para tus cotizaciones.</p>
-  </div>
-</section>
-<div class="two-column">
-  <section class="card">
-    <div id="item-form-container">
-      {% include "inventory/partials/item_form.html" with form=form %}
+<div class="module-shell">
+  <section class="module-hero">
+    <div class="module-hero__top">
+      <div>
+        <span class="module-badge">Catálogo operativo</span>
+        <h1>Inventario</h1>
+        <p>Administra tus productos, stock y costos para cotizar con información real y mantener control sobre disponibilidad.</p>
+      </div>
+      <div class="module-badge">{{ items|length }} productos</div>
+    </div>
+    <div class="module-stats">
+      <article class="module-stat">
+        <span class="module-stat__label">Productos cargados</span>
+        <p class="module-stat__value">{{ items|length }}</p>
+        <p class="module-stat__hint">Registros disponibles para usar en nuevas cotizaciones.</p>
+      </article>
+      <article class="module-stat">
+        <span class="module-stat__label">Objetivo</span>
+        <p class="module-stat__value">Stock</p>
+        <p class="module-stat__hint">Mantén cantidades y costos al día para evitar errores comerciales.</p>
+      </article>
     </div>
   </section>
-  <section class="card table-card">
+  <section class="card table-card module-table-card">
     <div class="table-header">
-      <h2>Catálogo</h2>
+      <div>
+        <h2>Catálogo</h2>
+        <p class="muted">Revisa existencias, costos y acciones disponibles sin perder espacio en pantalla.</p>
+      </div>
+      <a
+        class="primary"
+        data-tour-anchor="item-create"
+        href="{% url 'inventory:create' %}"
+        hx-get="{% url 'inventory:create' %}"
+        hx-target="#item-modal-body"
+        hx-swap="innerHTML"
+        data-modal-trigger="#item-modal"
+      >Nuevo producto</a>
     </div>
     <div class="table-wrapper">
       <table>
@@ -42,5 +158,12 @@
       </table>
     </div>
   </section>
+</div>
+
+<div id="item-modal" class="modal" aria-hidden="true">
+  <div class="modal__backdrop" data-modal-dismiss></div>
+  <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="item-modal-title">
+    <div id="item-modal-body" class="modal__body"></div>
+  </div>
 </div>
 {% endblock %}

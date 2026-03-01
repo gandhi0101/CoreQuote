@@ -1,32 +1,283 @@
 {% extends "base.html" %}
 
 {% block title %}Mi perfil fiscal | CoreQuote{% endblock %}
+{% block body_attrs %}data-page="profile"{% endblock %}
 
 {% block content %}
   <style>
-    .modal-backdrop {
+    .profile-shell {
+      display: grid;
+      gap: 1.75rem;
+    }
+
+    .profile-hero {
+      background:
+        radial-gradient(circle at top right, rgba(15, 94, 240, 0.16), transparent 28%),
+        linear-gradient(135deg, #ffffff 0%, #f7faff 100%);
+      border-radius: 1.4rem;
+      padding: clamp(1.4rem, 3vw, 2rem);
+      box-shadow: 0 22px 50px rgba(15, 94, 240, 0.08);
+      display: grid;
+      gap: 1.2rem;
+    }
+
+    .profile-hero__top {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: start;
+      flex-wrap: wrap;
+    }
+
+    .profile-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(15, 94, 240, 0.1);
+      color: var(--brand);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .profile-hero h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 2.8rem);
+    }
+
+    .profile-hero p {
+      margin: 0.55rem 0 0;
+      max-width: 64ch;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .profile-layout {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .profile-card {
+      max-width: none;
+      width: 100%;
+    }
+
+    .profile-sidebar {
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .profile-panel {
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(15, 94, 240, 0.08);
+      border-radius: 1.2rem;
+      padding: 1.2rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .profile-panel h2,
+    .profile-panel h3 {
+      margin: 0;
+    }
+
+    .profile-panel__eyebrow {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .profile-summary {
+      margin: 0;
+      display: grid;
+      gap: 0.95rem;
+    }
+
+    .profile-summary div {
+      display: grid;
+      gap: 0.25rem;
+    }
+
+    .profile-summary dt {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+
+    .profile-summary dd {
+      margin: 0;
+      color: var(--text);
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .profile-logo-frame {
+      border: 1px dashed rgba(15, 94, 240, 0.32);
+      border-radius: 1rem;
+      padding: 1rem;
+      background: rgba(15, 94, 240, 0.04);
+      display: grid;
+      place-items: center;
+      min-height: 12rem;
+    }
+
+    .profile-logo-frame img {
+      max-width: 100%;
+      max-height: 11rem;
+      object-fit: contain;
+      display: block;
+    }
+
+    .profile-form {
+      display: grid;
+      gap: 1.15rem;
+    }
+
+    .profile-form-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .profile-form-card::before {
+      content: "";
+      display: block;
+      height: 0.32rem;
+      background: linear-gradient(90deg, var(--brand), #57a5ff);
+      margin: calc(clamp(1.5rem, 4vw, 3rem) * -1) calc(clamp(1.5rem, 4vw, 3rem) * -1) 1.5rem;
+    }
+
+    .profile-form-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .profile-field {
+      display: grid;
+      gap: 0.38rem;
+      min-width: 0;
+    }
+
+    .profile-field--full {
+      grid-column: 1 / -1;
+    }
+
+    .profile-field label {
+      font-weight: 600;
+    }
+
+    .profile-field small {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .profile-form-actions {
+      display: flex;
+      justify-content: flex-start;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 0.4rem;
+    }
+
+    .profile-alerts {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .profile-alerts li {
+      padding: 0.85rem 1rem;
+      border-radius: 0.9rem;
+      background: rgba(15, 94, 240, 0.1);
+      color: var(--brand);
+      font-weight: 600;
+    }
+
+    .profile-admin-card {
+      max-width: none;
+      width: 100%;
+    }
+
+    .profile-admin-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      margin-top: 1rem;
+    }
+
+    .profile-admin-stat {
+      background: rgba(15, 94, 240, 0.05);
+      border: 1px solid rgba(15, 94, 240, 0.08);
+      border-radius: 1rem;
+      padding: 1rem;
+      display: grid;
+      gap: 0.25rem;
+    }
+
+    .profile-admin-stat span {
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .profile-admin-stat strong {
+      font-size: 1rem;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .profile-admin-stack {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .profile-error {
+      padding: 0.8rem 1rem;
+      border-radius: 0.9rem;
+      background: rgba(220, 38, 38, 0.12);
+      color: #b91c1c;
+    }
+
+    .profile-modal-backdrop {
       position: fixed;
       inset: 0;
       background: rgba(15, 23, 42, 0.55);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 1.5rem;
-      z-index: 90;
+      padding: 1rem;
+      z-index: 320;
     }
 
-    .modal-dialog {
+    .profile-modal-backdrop[hidden] {
+      display: none !important;
+    }
+
+    .profile-modal-dialog {
       position: relative;
-      width: min(480px, 100%);
+      width: min(520px, 100%);
+      max-height: min(90vh, 46rem);
+      overflow-y: auto;
       background: #ffffff;
-      border-radius: 1rem;
-      padding: clamp(1.75rem, 2vw + 1.25rem, 2.5rem);
+      border-radius: 1.1rem;
+      padding: clamp(1.25rem, 2vw + 1rem, 2rem);
       box-shadow: 0 18px 55px rgba(15, 23, 42, 0.22);
       display: grid;
-      gap: 1.5rem;
+      gap: 1.2rem;
+      -webkit-overflow-scrolling: touch;
     }
 
-    .modal-close {
+    .profile-modal-close {
       position: absolute;
       top: 0.85rem;
       right: 0.85rem;
@@ -43,151 +294,290 @@
       line-height: 1;
     }
 
-    .modal-close:hover {
+    .profile-modal-close:hover {
       background: rgba(15, 94, 240, 0.12);
       color: var(--brand);
-    }
-
-    .modal-backdrop[hidden] {
-      display: none !important;
     }
 
     body.modal-open {
       overflow: hidden;
     }
+
+    @media (max-width: 1024px) {
+      .profile-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .profile-form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-modal-backdrop {
+        align-items: flex-end;
+        padding: 0.5rem;
+      }
+
+      .profile-modal-dialog {
+        width: 100%;
+        max-height: min(88vh, 100%);
+        border-radius: 1.25rem 1.25rem 0 0;
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+      }
+    }
   </style>
 
-  <section class="card" style="max-width: 880px;">
-    <h1>Identidad fiscal y branding</h1>
-    <p style="color: var(--muted); max-width: 60ch;">
-      Configura aquí los datos que se mostrarán en tus cotizaciones: razón social, RFC, datos de contacto y
-      logotipo. Solo tendrás que subirlos una vez y se aplicarán automáticamente en cada PDF.
-    </p>
+  <div class="profile-shell">
+    <section class="profile-hero">
+      <div class="profile-hero__top">
+        <div>
+          <span class="profile-badge">Identidad fiscal y branding</span>
+          <h1>Mi perfil</h1>
+          <p>
+            Configura la información que aparecerá en tus cotizaciones: razón social, RFC, datos de contacto y
+            logotipo. La idea es que lo captures una vez y el sistema lo reutilice automáticamente.
+          </p>
+        </div>
+        <div class="profile-badge">{{ request.user.username }}</div>
+      </div>
+    </section>
 
     {% if messages %}
-      <ul style="list-style: none; margin: 1.5rem 0; padding: 0;">
+      <ul class="profile-alerts">
         {% for message in messages %}
-          <li style="padding: 0.85rem 1rem; border-radius: 0.75rem; background: rgba(15, 94, 240, 0.1); color: var(--brand); font-weight: 600;">
-            {{ message }}
-          </li>
+          <li>{{ message }}</li>
         {% endfor %}
       </ul>
     {% endif %}
 
-    <div style="display: grid; grid-template-columns: minmax(220px, 300px) minmax(260px, 1fr); gap: 2.5rem; align-items: start; margin-top: 2rem;">
-      <div style="display: grid; gap: 2.5rem; align-content: start;">
-        <section>
-          <h2 style="font-size: 1rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;">Resumen de la cuenta</h2>
-          <dl style="margin: 1rem 0 0; display: grid; gap: 1rem;">
+    <div class="profile-layout">
+      <aside class="profile-sidebar">
+        <section class="profile-panel">
+          <p class="profile-panel__eyebrow">Resumen de la cuenta</p>
+          <dl class="profile-summary">
             <div>
-              <dt style="font-weight: 600; color: var(--muted);">Nombre de usuario</dt>
-              <dd style="margin: 0.35rem 0 0;">{{ request.user.username }}</dd>
+              <dt>Nombre de usuario</dt>
+              <dd>{{ request.user.username }}</dd>
             </div>
             <div>
-              <dt style="font-weight: 600; color: var(--muted);">Nombre completo</dt>
-              <dd style="margin: 0.35rem 0 0;">{{ request.user.get_full_name|default:"No especificado" }}</dd>
+              <dt>Nombre completo</dt>
+              <dd>{{ request.user.get_full_name|default:"No especificado" }}</dd>
             </div>
             <div>
-              <dt style="font-weight: 600; color: var(--muted);">Correo electrónico</dt>
-              <dd style="margin: 0.35rem 0 0;">{{ request.user.email|default:"No especificado" }}</dd>
+              <dt>Correo electrónico</dt>
+              <dd>{{ request.user.email|default:"No especificado" }}</dd>
             </div>
           </dl>
-
-          <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <div>
             <button
               type="button"
+              class="primary"
+              data-tour-anchor="profile-account-button"
               data-modal-target="account-modal"
-              style="padding: 0.6rem 1.35rem; border-radius: 999px; border: none; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;"
             >
               Gestionar cuenta
             </button>
           </div>
         </section>
 
-        <section>
-          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--muted);">Logotipo actual</h3>
+        <section class="profile-panel" data-tour-anchor="profile-logo">
+          <p class="profile-panel__eyebrow">Logotipo actual</p>
           {% if profile.logo %}
-            <div style="margin-top: 0.75rem; padding: 1rem; border: 1px dashed rgba(15, 94, 240, 0.35); border-radius: 0.85rem; background: rgba(15, 94, 240, 0.04);">
-              <img src="{{ profile.logo.url }}" alt="Logo" style="max-width: 100%; height: auto; display: block; margin: 0 auto;" />
+            <div class="profile-logo-frame">
+              <img src="{{ profile.logo.url }}" alt="Logo" />
             </div>
           {% else %}
-            <p style="margin-top: 0.75rem; color: var(--muted);">Aún no has cargado un logotipo.</p>
+            <div class="profile-logo-frame">
+              <p class="muted">Aún no has cargado un logotipo.</p>
+            </div>
           {% endif %}
-          <p style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted);">
-            Sugerencia: usa un archivo PNG o SVG ligero (&lt; 1&nbsp;MB) para tiempos de carga rápidos.
-          </p>
+          <p class="muted">Sugerencia: usa un PNG o SVG ligero para mejorar tiempos de carga y nitidez.</p>
         </section>
-      </div>
+      </aside>
 
-      <form method="post" enctype="multipart/form-data" style="display: grid; gap: 1.25rem;">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="update-company" />
+      <section class="card profile-card profile-form-card">
+        <form method="post" enctype="multipart/form-data" class="profile-form" data-tour-anchor="profile-company-form">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="update-company" />
 
-        {% if profile_form.non_field_errors %}
-          <div style="padding: 0.75rem 1rem; border-radius: 0.75rem; background: rgba(220, 38, 38, 0.12); color: #b91c1c;">
-            {{ profile_form.non_field_errors|striptags }}
+          <div>
+            <h2 style="margin: 0;">Datos fiscales y branding</h2>
+            <p class="muted" style="margin: 0.5rem 0 0;">
+              Revisa esta información antes de generar documentos para clientes. Lo que guardes aquí se usará como base
+              de presentación en tus cotizaciones.
+            </p>
+          </div>
+
+          {% if profile_form.non_field_errors %}
+            <div class="profile-error">
+              {{ profile_form.non_field_errors|striptags }}
+            </div>
+          {% endif %}
+
+          <div class="profile-form-grid">
+            <div class="profile-field profile-field--full">
+              <label for="{{ profile_form.legal_name.id_for_label }}">Razón social</label>
+              {{ profile_form.legal_name }}
+              <small>Nombre que se mostrará como emisor en el documento.</small>
+              {% if profile_form.legal_name.errors %}
+                <small style="color: #b91c1c;">{{ profile_form.legal_name.errors|striptags }}</small>
+              {% endif %}
+            </div>
+
+            <div class="profile-field">
+              <label for="{{ profile_form.tax_id.id_for_label }}">RFC</label>
+              {{ profile_form.tax_id }}
+              {% if profile_form.tax_id.errors %}
+                <small style="color: #b91c1c;">{{ profile_form.tax_id.errors|striptags }}</small>
+              {% endif %}
+            </div>
+
+            <div class="profile-field">
+              <label for="{{ profile_form.contact_phone.id_for_label }}">Teléfono</label>
+              {{ profile_form.contact_phone }}
+              {% if profile_form.contact_phone.errors %}
+                <small style="color: #b91c1c;">{{ profile_form.contact_phone.errors|striptags }}</small>
+              {% endif %}
+            </div>
+
+            <div class="profile-field profile-field--full">
+              <label for="{{ profile_form.tax_address.id_for_label }}">Domicilio fiscal</label>
+              {{ profile_form.tax_address }}
+              {% if profile_form.tax_address.errors %}
+                <small style="color: #b91c1c;">{{ profile_form.tax_address.errors|striptags }}</small>
+              {% endif %}
+            </div>
+
+            <div class="profile-field profile-field--full">
+              <label for="{{ profile_form.contact_email.id_for_label }}">Correo de contacto</label>
+              {{ profile_form.contact_email }}
+              {% if profile_form.contact_email.errors %}
+                <small style="color: #b91c1c;">{{ profile_form.contact_email.errors|striptags }}</small>
+              {% endif %}
+            </div>
+
+            <div class="profile-field profile-field--full">
+              <label for="{{ profile_form.logo.id_for_label }}">Logotipo</label>
+              {{ profile_form.logo }}
+              {% if profile_form.logo.errors %}
+                <small style="color: #b91c1c;">{{ profile_form.logo.errors|striptags }}</small>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="profile-form-actions">
+            <button type="submit" class="primary">Guardar cambios fiscales</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    {% if request.user.is_superuser and gmail_configuration and gmail_form and gmail_test_form %}
+      <section class="card profile-admin-card">
+        <div>
+          <span class="profile-badge">Panel administrativo</span>
+          <h2 style="margin: 0.85rem 0 0;">Servicio de correo de Gmail</h2>
+          <p class="muted" style="margin: 0.5rem 0 0; max-width: 70ch;">
+            Configura la conexión OAuth de Google para que la app pueda enviar correos usando una cuenta Gmail real.
+            Google ya no permite este flujo con solo usuario y contraseña, por eso aquí se guardan las credenciales de OAuth 2.0.
+          </p>
+        </div>
+
+        <div class="profile-admin-grid">
+          <article class="profile-admin-stat">
+            <span>Estado</span>
+            <strong>
+              {% if gmail_configuration.connected_email %}Conectado{% else %}Pendiente{% endif %}
+            </strong>
+          </article>
+          <article class="profile-admin-stat">
+            <span>Cuenta conectada</span>
+            <strong>{{ gmail_configuration.connected_email|default:"Sin conexión todavía" }}</strong>
+          </article>
+          <article class="profile-admin-stat">
+            <span>Callback OAuth</span>
+            <strong>{{ gmail_callback_url }}</strong>
+          </article>
+        </div>
+
+        {% if gmail_configuration.last_error %}
+          <div class="profile-error">
+            {{ gmail_configuration.last_error }}
           </div>
         {% endif %}
 
-        <div>
-          <label for="{{ profile_form.legal_name.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Razón social</label>
-          {{ profile_form.legal_name }}
-          <small style="display: block; margin-top: 0.3rem; color: var(--muted);">Nombre que se mostrará como emisor.</small>
-          {% if profile_form.legal_name.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ profile_form.legal_name.errors|striptags }}</small>
+        <div class="profile-admin-stack">
+          <form method="post" class="profile-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update-gmail" />
+
+            <div class="profile-form-grid">
+              <div class="profile-field profile-field--full">
+                <label for="{{ gmail_form.client_id.id_for_label }}">{{ gmail_form.client_id.label }}</label>
+                {{ gmail_form.client_id }}
+                {% if gmail_form.client_id.errors %}
+                  <small style="color: #b91c1c;">{{ gmail_form.client_id.errors|striptags }}</small>
+                {% endif %}
+              </div>
+
+              <div class="profile-field profile-field--full">
+                <label for="{{ gmail_form.client_secret.id_for_label }}">{{ gmail_form.client_secret.label }}</label>
+                {{ gmail_form.client_secret }}
+                {% if gmail_form.client_secret.errors %}
+                  <small style="color: #b91c1c;">{{ gmail_form.client_secret.errors|striptags }}</small>
+                {% endif %}
+              </div>
+
+              <div class="profile-field profile-field--full">
+                <label for="{{ gmail_form.is_enabled.id_for_label }}" style="display: flex; align-items: center; gap: 0.65rem;">
+                  {{ gmail_form.is_enabled }}
+                  <span>{{ gmail_form.is_enabled.label }}</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="profile-form-actions">
+              <button type="submit" class="primary">Guardar configuración OAuth</button>
+              <a class="secondary" href="{% url 'accounts:gmail_connect' %}">Conectar con Google</a>
+            </div>
+          </form>
+
+          {% if gmail_configuration.connected_email %}
+            <form method="post" action="{% url 'accounts:gmail_disconnect' %}">
+              {% csrf_token %}
+              <div class="profile-form-actions" style="margin-top: -0.35rem;">
+                <button type="submit" class="secondary">Desconectar</button>
+              </div>
+            </form>
+          {% endif %}
+
+          {% if gmail_configuration.connected_email %}
+            <form method="post" class="profile-form">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="send-gmail-test" />
+
+              <div class="profile-field">
+                <label for="{{ gmail_test_form.recipient.id_for_label }}">{{ gmail_test_form.recipient.label }}</label>
+                {{ gmail_test_form.recipient }}
+                <small>Envía una prueba para confirmar que la conexión y el scope de Gmail funcionan.</small>
+                {% if gmail_test_form.recipient.errors %}
+                  <small style="color: #b91c1c;">{{ gmail_test_form.recipient.errors|striptags }}</small>
+                {% endif %}
+              </div>
+
+              <div class="profile-form-actions">
+                <button type="submit" class="primary">Enviar correo de prueba</button>
+              </div>
+            </form>
           {% endif %}
         </div>
-
-        <div style="display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
-          <div>
-            <label for="{{ profile_form.tax_id.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">RFC</label>
-            {{ profile_form.tax_id }}
-            {% if profile_form.tax_id.errors %}
-              <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ profile_form.tax_id.errors|striptags }}</small>
-            {% endif %}
-          </div>
-          <div>
-            <label for="{{ profile_form.contact_phone.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Teléfono</label>
-            {{ profile_form.contact_phone }}
-            {% if profile_form.contact_phone.errors %}
-              <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ profile_form.contact_phone.errors|striptags }}</small>
-            {% endif %}
-          </div>
-        </div>
-
-        <div>
-          <label for="{{ profile_form.tax_address.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Domicilio fiscal</label>
-          {{ profile_form.tax_address }}
-          {% if profile_form.tax_address.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ profile_form.tax_address.errors|striptags }}</small>
-          {% endif %}
-        </div>
-
-        <div>
-          <label for="{{ profile_form.contact_email.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Correo de contacto</label>
-          {{ profile_form.contact_email }}
-          {% if profile_form.contact_email.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ profile_form.contact_email.errors|striptags }}</small>
-          {% endif %}
-        </div>
-
-        <div>
-          <label for="{{ profile_form.logo.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Logotipo</label>
-          {{ profile_form.logo }}
-          {% if profile_form.logo.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ profile_form.logo.errors|striptags }}</small>
-          {% endif %}
-        </div>
-
-        <button type="submit" style="justify-self: start; padding: 0.7rem 1.5rem; border-radius: 999px; border: none; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;">
-          Guardar cambios fiscales
-        </button>
-      </form>
-    </div>
-  </section>
+      </section>
+    {% endif %}
+  </div>
 
   <div
-    class="modal-backdrop"
+    class="profile-modal-backdrop"
     data-modal="account-modal"
     role="dialog"
     aria-modal="true"
@@ -196,101 +586,80 @@
     {% if account_form.errors or account_form.non_field_errors %}data-force-account-form="true"{% endif %}
     hidden
   >
-    <div class="modal-dialog">
-      <button type="button" class="modal-close" data-modal-dismiss aria-label="Cerrar">
+    <div class="profile-modal-dialog">
+      <button type="button" class="profile-modal-close" data-modal-dismiss aria-label="Cerrar">
         &times;
       </button>
       <div>
-        <h2 id="account-modal-title" style="font-size: 1.25rem; font-weight: 700; margin: 0;">Editar datos personales</h2>
-        <p style="margin: 0.75rem 0 0; color: var(--muted);">
+        <h2 id="account-modal-title" style="margin: 0;">Editar datos personales</h2>
+        <p class="muted" style="margin: 0.65rem 0 0;">
           Consulta tus datos actuales y decide si deseas actualizar tu información o cambiar tu contraseña.
         </p>
       </div>
       <div data-account-step="overview" {% if account_form.errors or account_form.non_field_errors %}hidden{% endif %}>
-        <dl style="margin: 1rem 0 1.5rem; display: grid; gap: 0.85rem;">
+        <dl class="profile-summary">
           <div>
-            <dt style="font-weight: 600; color: var(--muted);">Nombre de usuario</dt>
-            <dd style="margin: 0.35rem 0 0;">{{ request.user.username }}</dd>
+            <dt>Nombre de usuario</dt>
+            <dd>{{ request.user.username }}</dd>
           </div>
           <div>
-            <dt style="font-weight: 600; color: var(--muted);">Nombre completo</dt>
-            <dd style="margin: 0.35rem 0 0;">{{ request.user.get_full_name|default:"No especificado" }}</dd>
+            <dt>Nombre completo</dt>
+            <dd>{{ request.user.get_full_name|default:"No especificado" }}</dd>
           </div>
           <div>
-            <dt style="font-weight: 600; color: var(--muted);">Correo electrónico</dt>
-            <dd style="margin: 0.35rem 0 0;">{{ request.user.email|default:"No especificado" }}</dd>
+            <dt>Correo electrónico</dt>
+            <dd>{{ request.user.email|default:"No especificado" }}</dd>
           </div>
         </dl>
-        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end;">
-          <button
-            type="button"
-            data-account-edit
-            data-modal-focus
-            style="padding: 0.65rem 1.3rem; border-radius: 999px; border: none; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;"
-          >
-            Editar datos
-          </button>
-          <button
-            type="button"
-            data-modal-switch="password-modal"
-            style="padding: 0.65rem 1.3rem; border-radius: 999px; border: 1px solid rgba(15, 94, 240, 0.35); background: #fff; color: var(--brand); font-weight: 600; cursor: pointer;"
-          >
-            Cambiar contraseña
-          </button>
+        <div class="profile-form-actions" style="justify-content: flex-end; margin-top: 1.25rem;">
+          <button type="button" class="primary" data-account-edit data-modal-focus>Editar datos</button>
+          <button type="button" class="secondary" data-modal-switch="password-modal">Cambiar contraseña</button>
         </div>
       </div>
-      <form method="post" style="display: grid; gap: 1rem;" data-account-step="form" {% if not account_form.errors and not account_form.non_field_errors %}hidden{% endif %}>
+      <form method="post" class="profile-form" data-account-step="form" {% if not account_form.errors and not account_form.non_field_errors %}hidden{% endif %}>
         {% csrf_token %}
         <input type="hidden" name="action" value="update-account" />
 
         {% if account_form.non_field_errors %}
-          <div style="padding: 0.75rem 1rem; border-radius: 0.75rem; background: rgba(220, 38, 38, 0.12); color: #b91c1c;">
+          <div class="profile-error">
             {{ account_form.non_field_errors|striptags }}
           </div>
         {% endif %}
 
-        <div>
-          <label for="{{ account_form.first_name.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Nombre</label>
+        <div class="profile-field">
+          <label for="{{ account_form.first_name.id_for_label }}">Nombre</label>
           {{ account_form.first_name }}
           {% if account_form.first_name.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ account_form.first_name.errors|striptags }}</small>
+            <small style="color: #b91c1c;">{{ account_form.first_name.errors|striptags }}</small>
           {% endif %}
         </div>
 
-        <div>
-          <label for="{{ account_form.last_name.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Apellidos</label>
+        <div class="profile-field">
+          <label for="{{ account_form.last_name.id_for_label }}">Apellidos</label>
           {{ account_form.last_name }}
           {% if account_form.last_name.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ account_form.last_name.errors|striptags }}</small>
+            <small style="color: #b91c1c;">{{ account_form.last_name.errors|striptags }}</small>
           {% endif %}
         </div>
 
-        <div>
-          <label for="{{ account_form.email.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Correo electrónico</label>
+        <div class="profile-field">
+          <label for="{{ account_form.email.id_for_label }}">Correo electrónico</label>
           {{ account_form.email }}
           {% if account_form.email.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ account_form.email.errors|striptags }}</small>
+            <small style="color: #b91c1c;">{{ account_form.email.errors|striptags }}</small>
           {% endif %}
         </div>
 
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; flex-wrap: wrap;">
-          <button
-            type="button"
-            data-account-cancel
-            style="padding: 0.65rem 1.3rem; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.35); background: #fff; font-weight: 600; color: var(--muted); cursor: pointer;"
-          >
-            Volver
-          </button>
-          <button type="submit" style="padding: 0.65rem 1.4rem; border-radius: 999px; border: none; background: var(--brand); color: #fff; font-weight: 600; cursor: pointer;">
-            Guardar cambios
-          </button>
+        <div class="profile-form-actions" style="justify-content: flex-end;">
+          <button type="button" class="secondary" data-account-cancel>Volver</button>
+          <button type="submit" class="primary">Guardar cambios</button>
         </div>
       </form>
     </div>
   </div>
 
   <div
-    class="modal-backdrop"
+    class="profile-modal-backdrop"
     data-modal="password-modal"
     role="dialog"
     aria-modal="true"
@@ -298,60 +667,56 @@
     {% if password_form.errors or password_form.non_field_errors %}data-open-on-load="true"{% endif %}
     hidden
   >
-    <div class="modal-dialog">
-      <button type="button" class="modal-close" data-modal-dismiss aria-label="Cerrar">
+    <div class="profile-modal-dialog">
+      <button type="button" class="profile-modal-close" data-modal-dismiss aria-label="Cerrar">
         &times;
       </button>
       <div>
-        <h2 id="password-modal-title" style="font-size: 1.25rem; font-weight: 700; margin: 0;">Actualizar contraseña</h2>
-        <p style="margin: 0.75rem 0 0; color: var(--muted);">
+        <h2 id="password-modal-title" style="margin: 0;">Actualizar contraseña</h2>
+        <p class="muted" style="margin: 0.65rem 0 0;">
           Necesitamos tu contraseña actual para confirmar tu identidad antes de guardar una nueva contraseña segura.
         </p>
       </div>
-      <form method="post" style="display: grid; gap: 1rem;">
+      <form method="post" class="profile-form">
         {% csrf_token %}
         <input type="hidden" name="action" value="change-password" />
 
         {% if password_form.non_field_errors %}
-          <div style="padding: 0.75rem 1rem; border-radius: 0.75rem; background: rgba(220, 38, 38, 0.12); color: #b91c1c;">
+          <div class="profile-error">
             {{ password_form.non_field_errors|striptags }}
           </div>
         {% endif %}
 
-        <div>
-          <label for="{{ password_form.old_password.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Contraseña actual</label>
+        <div class="profile-field">
+          <label for="{{ password_form.old_password.id_for_label }}">Contraseña actual</label>
           {{ password_form.old_password }}
           {% if password_form.old_password.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ password_form.old_password.errors|striptags }}</small>
+            <small style="color: #b91c1c;">{{ password_form.old_password.errors|striptags }}</small>
           {% endif %}
         </div>
 
-        <div>
-          <label for="{{ password_form.new_password1.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Nueva contraseña</label>
+        <div class="profile-field">
+          <label for="{{ password_form.new_password1.id_for_label }}">Nueva contraseña</label>
           {{ password_form.new_password1 }}
           {% if password_form.new_password1.help_text %}
-            <small style="display: block; margin-top: 0.35rem; color: var(--muted);">{{ password_form.new_password1.help_text|safe }}</small>
+            <small class="muted">{{ password_form.new_password1.help_text|safe }}</small>
           {% endif %}
           {% if password_form.new_password1.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ password_form.new_password1.errors|striptags }}</small>
+            <small style="color: #b91c1c;">{{ password_form.new_password1.errors|striptags }}</small>
           {% endif %}
         </div>
 
-        <div>
-          <label for="{{ password_form.new_password2.id_for_label }}" style="display: block; font-weight: 600; margin-bottom: 0.4rem;">Confirmar nueva contraseña</label>
+        <div class="profile-field">
+          <label for="{{ password_form.new_password2.id_for_label }}">Confirmar nueva contraseña</label>
           {{ password_form.new_password2 }}
           {% if password_form.new_password2.errors %}
-            <small style="color: #b91c1c; display: block; margin-top: 0.35rem;">{{ password_form.new_password2.errors|striptags }}</small>
+            <small style="color: #b91c1c;">{{ password_form.new_password2.errors|striptags }}</small>
           {% endif %}
         </div>
 
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
-          <button type="button" data-modal-dismiss style="padding: 0.65rem 1.3rem; border-radius: 999px; border: 1px solid rgba(15, 23, 42, 0.12); background: #fff; font-weight: 600; color: var(--muted); cursor: pointer;">
-            Cancelar
-          </button>
-          <button type="submit" style="padding: 0.65rem 1.4rem; border-radius: 999px; border: none; background: var(--brand-dark); color: #fff; font-weight: 600; cursor: pointer;">
-            Actualizar contraseña
-          </button>
+        <div class="profile-form-actions" style="justify-content: flex-end;">
+          <button type="button" class="secondary" data-modal-dismiss>Cancelar</button>
+          <button type="submit" class="primary">Actualizar contraseña</button>
         </div>
       </form>
     </div>

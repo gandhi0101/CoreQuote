@@ -1,0 +1,10 @@
+Hola {{ quote.client.name }},
+
+Adjuntamos la cotización #{{ quote.pk }} generada en CoreQuote.
+
+Total cotizado: ${{ quote.total|floatformat:2 }}
+Estado actual: {{ quote.get_status_display }}
+
+Si tienes alguna duda o necesitas ajustes, responde a este correo.
+
+Saludos.

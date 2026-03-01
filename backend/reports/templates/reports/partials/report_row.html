@@ -1,13 +1,28 @@
 <tr id="report-{{ report.pk }}">
-  <td class="cell-strong">{{ report.name }}</td>
-  <td>{% if report.description %}{{ report.description }}{% else %}<span class="muted">Sin descripción</span>{% endif %}</td>
-  <td>{{ report.created_at|date:"d/m/Y H:i" }}</td>
+  <td>
+    <div class="report-title-cell">
+      <span class="report-title-cell__name">{{ report.name }}</span>
+      <div class="report-title-cell__meta">
+        <span class="report-chip">Reporte</span>
+        <span>{{ report.created_at|timesince }} atrás</span>
+      </div>
+    </div>
+  </td>
+  <td class="report-description-cell">
+    {% if report.description %}
+      {{ report.description|truncatechars:180|linebreaksbr }}
+    {% else %}
+      <span class="muted">Sin descripción adicional.</span>
+    {% endif %}
+  </td>
+  <td class="report-timestamp">{{ report.created_at|date:"d/m/Y H:i" }}</td>
   <td class="row-actions">
     <button
       class="link"
       hx-get="{% url 'reports:update' report.pk %}"
-      hx-target="#report-form-container"
+      hx-target="#report-modal-body"
       hx-swap="innerHTML"
+      data-modal-trigger="#report-modal"
     >Editar</button>
     <button
       class="link danger"
