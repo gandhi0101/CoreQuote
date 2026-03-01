@@ -5,6 +5,7 @@ from django.db.models import DecimalField, F, Sum
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
+from io import BytesIO
 
 from inventory.models import Item
 from quotes.models import QuoteItem
@@ -173,49 +174,63 @@ def invite(request):
 
 
 def invite_preview_image(request):
-    svg = """<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
-  <defs>
-    <linearGradient id="bg" x1="120" y1="40" x2="1020" y2="590" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F8FBFF"/>
-      <stop offset="0.52" stop-color="#EEF4FF"/>
-      <stop offset="1" stop-color="#E5EFFD"/>
-    </linearGradient>
-    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#0F5EF0"/>
-      <stop offset="1" stop-color="#27A4F2"/>
-    </linearGradient>
-    <filter id="shadow" x="0" y="0" width="1200" height="630" filterUnits="userSpaceOnUse">
-      <feDropShadow dx="0" dy="30" stdDeviation="30" flood-color="#0F5EF0" flood-opacity="0.12"/>
-    </filter>
-  </defs>
-  <rect width="1200" height="630" rx="36" fill="url(#bg)"/>
-  <circle cx="1030" cy="112" r="140" fill="#0F5EF0" fill-opacity="0.08"/>
-  <circle cx="140" cy="540" r="160" fill="#27A4F2" fill-opacity="0.08"/>
-  <g filter="url(#shadow)">
-    <rect x="58" y="58" width="1084" height="514" rx="34" fill="#FFFFFF"/>
-  </g>
-  <rect x="102" y="104" width="182" height="420" rx="28" fill="#0F172A"/>
-  <rect x="126" y="138" width="134" height="18" rx="9" fill="#1E293B"/>
-  <rect x="126" y="186" width="134" height="74" rx="20" fill="url(#brand)" fill-opacity="0.18"/>
-  <rect x="126" y="278" width="134" height="74" rx="20" fill="#111827"/>
-  <rect x="126" y="370" width="134" height="74" rx="20" fill="#111827"/>
-  <text x="324" y="162" fill="#0F5EF0" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="700">CoreQuote</text>
-  <text x="324" y="214" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="62" font-weight="800">Control inteligente</text>
-  <text x="324" y="274" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="62" font-weight="800">de tu negocio</text>
-  <text x="324" y="330" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="26">Clientes, inventario, cotizaciones y seguimiento</text>
-  <text x="324" y="368" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="26">en un solo flujo claro y mejor presentado.</text>
-  <rect x="324" y="416" width="228" height="58" rx="18" fill="url(#brand)"/>
-  <text x="360" y="453" fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="700">Cotiza con orden</text>
-  <rect x="576" y="416" width="234" height="58" rx="18" fill="#E8F0FF"/>
-  <text x="612" y="453" fill="#0F5EF0" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="700">Comparte mejor</text>
-  <rect x="846" y="132" width="246" height="314" rx="28" fill="#F8FBFF" stroke="#D9E8FF"/>
-  <rect x="874" y="168" width="190" height="92" rx="22" fill="#0F172A"/>
-  <text x="894" y="208" fill="#8FB9FF" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700">Cotización enviada</text>
-  <text x="894" y="236" fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="800">$128,450 MXN</text>
-  <text x="894" y="320" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="700">Clientes</text>
-  <text x="894" y="350" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="18">Base limpia y reutilizable</text>
-  <text x="894" y="396" fill="#0F172A" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="700">Inventario</text>
-  <text x="894" y="426" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="18">Costos reales y stock visible</text>
-  <text x="102" y="555" fill="#64748B" font-family="Inter, Arial, sans-serif" font-size="16">pleasant-curiosity-production-da67.up.railway.app</text>
-</svg>"""
-    return HttpResponse(svg, content_type="image/svg+xml")
+    from PIL import Image, ImageDraw, ImageFont
+
+    width, height = 1200, 630
+    image = Image.new("RGB", (width, height), "#eef5ff")
+    draw = ImageDraw.Draw(image)
+
+    def rounded_box(x1, y1, x2, y2, radius, fill, outline=None, width_px=1):
+        draw.rounded_rectangle((x1, y1, x2, y2), radius=radius, fill=fill, outline=outline, width=width_px)
+
+    def load_font(size, bold=False):
+        candidates = [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/Library/Fonts/Arial Bold.ttf" if bold else "/Library/Fonts/Arial.ttf",
+        ]
+        for path in candidates:
+            try:
+                return ImageFont.truetype(path, size=size)
+            except Exception:
+                continue
+        return ImageFont.load_default()
+
+    font_small = load_font(22, bold=True)
+    font_body = load_font(30, bold=False)
+    font_h1 = load_font(64, bold=True)
+    font_h2 = load_font(34, bold=True)
+    font_stat = load_font(26, bold=True)
+
+    draw.ellipse((920, 24, 1180, 284), fill="#d9e8ff")
+    draw.ellipse((0, 420, 250, 670), fill="#dff1ff")
+    rounded_box(58, 58, 1142, 572, 36, "#ffffff")
+
+    rounded_box(102, 104, 284, 524, 28, "#0f172a")
+    rounded_box(126, 186, 260, 260, 20, "#0f5ef0")
+    rounded_box(126, 278, 260, 352, 20, "#111827")
+    rounded_box(126, 370, 260, 444, 20, "#111827")
+
+    draw.text((324, 132), "CoreQuote", font=font_h2, fill="#0f5ef0")
+    draw.text((324, 198), "Control inteligente", font=font_h1, fill="#0f172a")
+    draw.text((324, 268), "de tu negocio", font=font_h1, fill="#0f172a")
+    draw.text((324, 348), "Clientes, inventario, cotizaciones y seguimiento", font=font_body, fill="#475569")
+    draw.text((324, 388), "en un solo flujo claro y mejor presentado.", font=font_body, fill="#475569")
+
+    rounded_box(324, 446, 560, 506, 18, "#0f5ef0")
+    draw.text((356, 462), "Cotiza con orden", font=font_small, fill="#ffffff")
+    rounded_box(580, 446, 828, 506, 18, "#e8f0ff")
+    draw.text((618, 462), "Comparte mejor", font=font_small, fill="#0f5ef0")
+
+    rounded_box(846, 132, 1092, 446, 28, "#f8fbff", outline="#d9e8ff", width_px=2)
+    rounded_box(874, 168, 1064, 260, 22, "#0f172a")
+    draw.text((896, 194), "Cotización enviada", font=font_small, fill="#8fb9ff")
+    draw.text((896, 226), "$128,450 MXN", font=font_h2, fill="#ffffff")
+    draw.text((896, 320), "Clientes", font=font_stat, fill="#0f172a")
+    draw.text((896, 352), "Base limpia y reutilizable", font=font_small, fill="#475569")
+    draw.text((896, 396), "Inventario", font=font_stat, fill="#0f172a")
+    draw.text((896, 428), "Costos reales y stock visible", font=font_small, fill="#475569")
+    draw.text((102, 548), "pleasant-curiosity-production-da67.up.railway.app", font=font_small, fill="#64748b")
+
+    output = BytesIO()
+    image.save(output, format="PNG", optimize=True)
+    return HttpResponse(output.getvalue(), content_type="image/png")

@@ -25,7 +25,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("", home, name="home"),
     path("invitar/", invite, name="invite"),
-    path("invitar/preview.svg", invite_preview_image, name="invite_preview_image"),
+    path("invitar/preview.png", invite_preview_image, name="invite_preview_image"),
     path("accounts/", include("accounts.urls")),
     path("accounts/", include("django.contrib.auth.urls")),
     path("clientes/", include("clients.urls")),
