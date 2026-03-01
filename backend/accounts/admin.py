@@ -2,10 +2,6 @@ from django.contrib import admin
 
 from .models import CompanyProfile, GmailServiceConfiguration
 
-admin.site.site_header = "CoreQuote Admin"
-admin.site.site_title = "CoreQuote Admin"
-admin.site.index_title = "Panel de administracion"
-
 
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(admin.ModelAdmin):
