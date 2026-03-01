@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block title %}{{ share_title }}{% endblock %}
+{% block body_attrs %}data-page="invite"{% endblock %}
+{% block extra_head %}
+  <meta name="description" content="{{ share_description }}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="{{ share_title }}" />
+  <meta property="og:description" content="{{ share_description }}" />
+  <meta property="og:url" content="{{ invite_url }}" />
+  <meta property="og:image" content="{{ preview_image_url }}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="CoreQuote" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{{ share_title }}" />
+  <meta name="twitter:description" content="{{ share_description }}" />
+  <meta name="twitter:image" content="{{ preview_image_url }}" />
+  <style>
+    .invite-shell {
+      display: grid;
+      gap: 1.75rem;
+    }
+
+    .invite-hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 1.75rem;
+      padding: clamp(1.5rem, 3vw, 2.7rem);
+      background:
+        radial-gradient(circle at top right, rgba(15, 94, 240, 0.22), transparent 24%),
+        radial-gradient(circle at bottom left, rgba(39, 164, 242, 0.16), transparent 26%),
+        linear-gradient(135deg, #ffffff 0%, #f7faff 42%, #ecf4ff 100%);
+      box-shadow: 0 30px 80px rgba(15, 94, 240, 0.12);
+      display: grid;
+      gap: 1.6rem;
+    }
+
+    .invite-hero__grid {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      align-items: center;
+    }
+
+    .invite-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(15, 94, 240, 0.1);
+      color: var(--brand);
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .invite-copy {
+      margin: 0.9rem 0 0;
+      max-width: 62ch;
+      color: var(--muted);
+      font-size: 1.03rem;
+      line-height: 1.72;
+    }
+
+    .invite-title {
+      margin: 0.9rem 0 0;
+      font-size: clamp(2.4rem, 5vw, 4.1rem);
+      line-height: 0.98;
+      max-width: 11ch;
+    }
+
+    .invite-actions {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin-top: 1.1rem;
+    }
+
+    .invite-ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.78rem 1.2rem;
+      border-radius: 1rem;
+      border: 1px solid rgba(15, 94, 240, 0.16);
+      background: rgba(255, 255, 255, 0.84);
+      color: var(--brand);
+      font-weight: 700;
+    }
+
+    .invite-preview {
+      position: relative;
+      border-radius: 1.45rem;
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid rgba(15, 94, 240, 0.12);
+      box-shadow: 0 24px 48px rgba(15, 94, 240, 0.1);
+      padding: 1rem;
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .invite-preview__window {
+      border-radius: 1.2rem;
+      background: linear-gradient(180deg, #0f172a 0%, #101f44 100%);
+      padding: 1rem;
+      display: grid;
+      gap: 0.8rem;
+      min-height: 21rem;
+    }
+
+    .invite-preview__topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .invite-preview__card {
+      border-radius: 1.1rem;
+      background: linear-gradient(160deg, rgba(15, 94, 240, 0.24), rgba(39, 164, 242, 0.14));
+      border: 1px solid rgba(143, 185, 255, 0.18);
+      padding: 1rem;
+      color: #fff;
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .invite-preview__eyebrow {
+      color: rgba(191, 219, 254, 0.88);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .invite-preview__price {
+      font-size: 2rem;
+      font-weight: 800;
+      margin: 0;
+    }
+
+    .invite-preview__stats {
+      display: grid;
+      gap: 0.7rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .invite-preview__stat {
+      border-radius: 0.95rem;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.85rem;
+      color: rgba(255, 255, 255, 0.92);
+      display: grid;
+      gap: 0.25rem;
+    }
+
+    .invite-preview__stat span {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(191, 219, 254, 0.76);
+      font-weight: 700;
+    }
+
+    .invite-preview__stat strong {
+      font-size: 1.15rem;
+    }
+
+    .invite-feature-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .invite-feature {
+      border-radius: 1.15rem;
+      border: 1px solid rgba(15, 94, 240, 0.09);
+      background: rgba(255, 255, 255, 0.82);
+      padding: 1.15rem;
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .invite-feature span {
+      color: var(--brand);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .invite-feature h2 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .invite-feature p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    @media (max-width: 920px) {
+      .invite-hero__grid {
+        grid-template-columns: 1fr;
+      }
+
+      .invite-title {
+        max-width: none;
+      }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="invite-shell">
+    <section class="invite-hero">
+      <div class="invite-hero__grid">
+        <div>
+          <span class="invite-badge">CoreQuote | Invitación</span>
+          <h1 class="invite-title">Cotiza con más orden y mejor presencia.</h1>
+          <p class="invite-copy">
+            CoreQuote reúne clientes, inventario, cotizaciones y seguimiento en una experiencia clara para equipos que
+            quieren vender con contexto, salir mejor presentados y dejar atrás el caos operativo.
+          </p>
+          <div class="invite-actions">
+            <a class="primary-action" href="{% url 'login' %}">Entrar a CoreQuote</a>
+            <a class="invite-ghost" href="{{ invite_url }}">Compartir esta invitación</a>
+          </div>
+        </div>
+
+        <div class="invite-preview">
+          <div class="invite-preview__window">
+            <div class="invite-preview__topbar">
+              <span>Vista previa</span>
+              <span>CoreQuote</span>
+            </div>
+            <article class="invite-preview__card">
+              <span class="invite-preview__eyebrow">Cotización destacada</span>
+              <p class="invite-preview__price">$128,450 MXN</p>
+              <span>Cliente: Grupo Horizonte · Estado: Enviada</span>
+            </article>
+            <div class="invite-preview__stats">
+              <article class="invite-preview__stat">
+                <span>Clientes</span>
+                <strong>Base limpia</strong>
+              </article>
+              <article class="invite-preview__stat">
+                <span>Inventario</span>
+                <strong>Costos reales</strong>
+              </article>
+              <article class="invite-preview__stat">
+                <span>Propuestas</span>
+                <strong>Presentación pro</strong>
+              </article>
+              <article class="invite-preview__stat">
+                <span>Seguimiento</span>
+                <strong>Más contexto</strong>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="invite-feature-grid">
+        <article class="invite-feature">
+          <span>Clientes</span>
+          <h2>Directorio reutilizable</h2>
+          <p>Registra contactos una sola vez y úsalos después en cada cotización o seguimiento.</p>
+        </article>
+        <article class="invite-feature">
+          <span>Inventario</span>
+          <h2>Stock y costo visibles</h2>
+          <p>Trabaja con datos reales para cotizar mejor y entender márgenes con menos fricción.</p>
+        </article>
+        <article class="invite-feature">
+          <span>Cotizaciones</span>
+          <h2>Propuestas más sólidas</h2>
+          <p>Genera documentos con identidad visual, mejor orden y envíos más profesionales.</p>
+        </article>
+      </div>
+    </section>
+  </div>
+{% endblock %}

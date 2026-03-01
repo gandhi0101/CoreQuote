@@ -2857,6 +2857,23 @@
           showToast(detail);
         });
 
+        document.body.addEventListener("click", async (event) => {
+          const trigger = event.target.closest?.("[data-copy-text]");
+          if (!trigger) return;
+          event.preventDefault();
+
+          const text = trigger.getAttribute("data-copy-text");
+          if (!text) return;
+
+          try {
+            await navigator.clipboard.writeText(text);
+            showToast({ message: "Liga copiada al portapapeles.", type: "success" });
+          } catch (error) {
+            console.error("No se pudo copiar el texto", error);
+            showToast({ message: "No se pudo copiar la liga.", type: "error" });
+          }
+        });
+
         document.body.addEventListener("listChanged", (event) => {
           const detail = getDetail(event);
           if (!detail) return;

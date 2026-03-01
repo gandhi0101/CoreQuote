@@ -19,11 +19,13 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from .views import home
+from .views import home, invite, invite_preview_image
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", home, name="home"),
+    path("invitar/", invite, name="invite"),
+    path("invitar/preview.svg", invite_preview_image, name="invite_preview_image"),
     path("accounts/", include("accounts.urls")),
     path("accounts/", include("django.contrib.auth.urls")),
     path("clientes/", include("clients.urls")),

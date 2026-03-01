@@ -248,6 +248,120 @@
       color: #b91c1c;
     }
 
+    .invite-admin-card {
+      display: grid;
+      gap: 1.3rem;
+    }
+
+    .invite-admin-grid {
+      display: grid;
+      gap: 1.25rem;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      align-items: center;
+    }
+
+    .invite-admin-copy {
+      margin: 0.55rem 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 60ch;
+    }
+
+    .invite-admin-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .invite-admin-url {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.9rem 1rem;
+      border-radius: 1rem;
+      background: rgba(15, 94, 240, 0.05);
+      border: 1px solid rgba(15, 94, 240, 0.1);
+      color: var(--text);
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+
+    .invite-admin-preview {
+      border-radius: 1.4rem;
+      background: linear-gradient(160deg, #ffffff 0%, #f6faff 100%);
+      border: 1px solid rgba(15, 94, 240, 0.1);
+      box-shadow: 0 22px 48px rgba(15, 94, 240, 0.08);
+      padding: 1rem;
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .invite-admin-preview__window {
+      border-radius: 1.15rem;
+      padding: 1rem;
+      min-height: 20rem;
+      background:
+        radial-gradient(circle at top right, rgba(15, 94, 240, 0.18), transparent 28%),
+        linear-gradient(180deg, #0f172a 0%, #101f44 100%);
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .invite-admin-preview__bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .invite-admin-preview__hero {
+      border-radius: 1rem;
+      padding: 1rem;
+      background: linear-gradient(135deg, rgba(15, 94, 240, 0.24), rgba(39, 164, 242, 0.16));
+      border: 1px solid rgba(143, 185, 255, 0.18);
+      display: grid;
+      gap: 0.45rem;
+      color: #fff;
+    }
+
+    .invite-admin-preview__hero strong {
+      font-size: 1.65rem;
+    }
+
+    .invite-admin-preview__stats {
+      display: grid;
+      gap: 0.7rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .invite-admin-preview__stats article {
+      border-radius: 0.95rem;
+      padding: 0.8rem;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.92);
+      display: grid;
+      gap: 0.2rem;
+    }
+
+    .invite-admin-preview__stats span {
+      color: rgba(191, 219, 254, 0.8);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .invite-admin-preview__caption {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
     .profile-modal-backdrop {
       position: fixed;
       inset: 0;
@@ -305,6 +419,10 @@
 
     @media (max-width: 1024px) {
       .profile-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .invite-admin-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -585,6 +703,63 @@
         </div>
       </section>
     {% endif %}
+
+    <section class="card profile-admin-card invite-admin-card">
+      <div>
+        <span class="profile-badge">Invitar a la app</span>
+        <h2 style="margin: 0.85rem 0 0;">Comparte CoreQuote con mejor preview</h2>
+        <p class="invite-admin-copy">
+          Usa esta liga pública para invitar usuarios o enseñar la app. La invitación abre una landing más limpia y
+          con preview optimizado para WhatsApp, Telegram y otras apps de mensajería.
+        </p>
+      </div>
+
+      <div class="invite-admin-grid">
+        <div class="profile-admin-stack">
+          <div class="invite-admin-url">{{ invite_url }}</div>
+          <div class="invite-admin-actions">
+            <button type="button" class="primary" data-copy-text="{{ invite_url }}">Copiar liga</button>
+            <a class="secondary" href="{{ whatsapp_invite_url }}" target="_blank" rel="noopener">Enviar por WhatsApp</a>
+            <a class="secondary" href="{{ invite_url }}" target="_blank" rel="noopener">Ver invitación</a>
+          </div>
+        </div>
+
+        <div class="invite-admin-preview">
+          <div class="invite-admin-preview__window">
+            <div class="invite-admin-preview__bar">
+              <span>Preview</span>
+              <span>CoreQuote</span>
+            </div>
+            <article class="invite-admin-preview__hero">
+              <span style="font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(191, 219, 254, 0.82); font-weight: 700;">Control comercial</span>
+              <strong>Cotiza mejor. Opera con contexto.</strong>
+              <span>Clientes, inventario, propuestas y seguimiento en un mismo flujo.</span>
+            </article>
+            <div class="invite-admin-preview__stats">
+              <article>
+                <span>Clientes</span>
+                <strong>Base limpia</strong>
+              </article>
+              <article>
+                <span>Inventario</span>
+                <strong>Costos reales</strong>
+              </article>
+              <article>
+                <span>Cotizaciones</span>
+                <strong>Presentación pro</strong>
+              </article>
+              <article>
+                <span>Seguimiento</span>
+                <strong>Más orden</strong>
+              </article>
+            </div>
+          </div>
+          <p class="invite-admin-preview__caption">
+            La liga de invitación apunta a una portada pública hecha para compartirse y mostrar mejor la estética de la app.
+          </p>
+        </div>
+      </div>
+    </section>
   </div>
 
   <div

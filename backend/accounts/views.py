@@ -1,8 +1,12 @@
+from urllib.parse import quote
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.db import connection
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from .forms import (
@@ -167,6 +171,20 @@ def profile(request):
         gmail_form = GmailServiceConfigurationForm(instance=gmail_settings) if request.user.is_superuser and gmail_settings else None
         gmail_test_form = GmailTestEmailForm()
 
+    invite_path = reverse("invite")
+    invite_url = (
+        f"{settings.APP_BASE_URL.rstrip('/')}{invite_path}"
+        if settings.APP_BASE_URL
+        else request.build_absolute_uri(invite_path)
+    )
+    whatsapp_invite_url = (
+        "https://wa.me/?text="
+        + quote(
+            "Te comparto CoreQuote para gestionar clientes, inventario y cotizaciones con una imagen más profesional: "
+            + invite_url
+        )
+    )
+
     return render(
         request,
         "accounts/profile.html",
@@ -182,6 +200,8 @@ def profile(request):
             "gmail_callback_url": build_redirect_uri(request)
             if gmail_settings
             else "",
+            "invite_url": invite_url,
+            "whatsapp_invite_url": whatsapp_invite_url,
         },
     )
 
