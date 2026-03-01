@@ -1,4 +1,26 @@
-# CoreQuote en Railway
+# CoreQuote
+
+## Desarrollo con Docker
+
+Para desarrollo no necesitas reconstruir la imagen en cada cambio. Usa el override de desarrollo, que monta `backend/` como volumen y corre `runserver` con autoreload:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
+Después del primer build, los cambios en Python, templates y archivos estáticos dentro de `backend/` se reflejan sin volver a construir:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+Si cambias dependencias de `backend/requirements.txt` o el `Dockerfile.dev`, entonces sí necesitas reconstruir:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
+## Producción en Railway
 
 Esta guía explica paso a paso cómo desplegar este proyecto en [Railway](https://railway.app/) usando el repositorio actual.
 
