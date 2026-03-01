@@ -1207,7 +1207,7 @@
         padding: 1.5rem;
         z-index: 300;
         overscroll-behavior: contain;
-        touch-action: none;
+        touch-action: auto;
       }
 
       .modal.is-open {
@@ -1219,7 +1219,7 @@
         inset: 0;
         background: rgba(15, 23, 42, 0.45);
         backdrop-filter: blur(3px);
-        touch-action: none;
+        touch-action: manipulation;
       }
 
       .modal__dialog {
@@ -2696,11 +2696,12 @@
         const focusFirstField = (modal) => {
           if (!modal) return;
           const selector = [
-            "button:not([disabled])",
-            "[href]",
+            "[data-modal-focus]",
             "input:not([disabled])",
             "select:not([disabled])",
             "textarea:not([disabled])",
+            "button:not([disabled])",
+            "[href]",
           ].join(",");
           const focusable = modal.querySelector(selector);
           if (focusable && typeof focusable.focus === "function") {
@@ -2734,6 +2735,7 @@
         document.body.addEventListener("click", (event) => {
           const trigger = event.target.closest?.("[hx-get], [hx-delete], [hx-post]");
           if (!trigger) return;
+          if (trigger instanceof HTMLFormElement) return;
           if (trigger.hasAttribute("disabled") || trigger.dataset.disabled !== undefined) {
             event.preventDefault();
             return;

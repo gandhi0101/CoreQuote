@@ -4,6 +4,10 @@ from .models import Client
 
 
 class ClientForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["name"].widget.attrs["data-modal-focus"] = "true"
+
     class Meta:
         model = Client
         fields = ["name", "email"]
@@ -18,6 +22,10 @@ class ClientForm(forms.ModelForm):
 
 
 class ClientEmailForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["subject"].widget.attrs["data-modal-focus"] = "true"
+
     subject = forms.CharField(
         label="Asunto",
         max_length=160,
