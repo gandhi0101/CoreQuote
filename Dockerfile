@@ -27,5 +27,6 @@ EXPOSE 8000
 # por defecto: dev server (claro y directo)
 #CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 # para producción, usar gunicorn (más robusto)
-CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 3 --timeout 90"]
+CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 90"]
+
 
