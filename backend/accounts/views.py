@@ -1,3 +1,5 @@
+from functools import wraps
+from pathlib import Path
 from urllib.parse import quote
 
 from django.conf import settings
@@ -24,6 +26,17 @@ from .gmail import (
     send_test_email,
 )
 from .models import CompanyProfile, GmailServiceConfiguration
+
+
+def superuser_required(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_superuser:
+            messages.error(request, "Solo los superusuarios pueden acceder a este diagnóstico.")
+            return redirect("accounts:profile")
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
 
 
 def get_gmail_settings():
@@ -76,12 +89,17 @@ def profile(request):
     """Display and edit the user's company profile."""
 
     profile, _ = CompanyProfile.objects.get_or_create(user=request.user)
+    gmail_settings, gmail_configuration, gmail_effective = get_effective_gmail_configuration(
+        request.user
+    )
 
     if request.method == "POST":
         if request.POST.get("action") == "update-account":
             account_form = UserAccountForm(request.POST, instance=request.user)
             password_form = StyledPasswordChangeForm(user=request.user)
             profile_form = CompanyProfileForm(instance=profile)
+            gmail_form = GmailServiceConfigurationForm(instance=gmail_settings) if request.user.is_superuser and gmail_settings else None
+            gmail_test_form = GmailTestEmailForm()
 
             if account_form.is_valid():
                 account_form.save()
@@ -91,16 +109,68 @@ def profile(request):
             account_form = UserAccountForm(instance=request.user)
             password_form = StyledPasswordChangeForm(user=request.user, data=request.POST)
             profile_form = CompanyProfileForm(instance=profile)
+            gmail_form = GmailServiceConfigurationForm(instance=gmail_settings) if request.user.is_superuser and gmail_settings else None
+            gmail_test_form = GmailTestEmailForm()
 
             if password_form.is_valid():
                 user = password_form.save()
                 update_session_auth_hash(request, user)
                 messages.success(request, "Contraseña actualizada correctamente.")
                 return redirect("accounts:profile")
+        elif request.POST.get("action") == "update-gmail" and request.user.is_superuser and gmail_settings:
+            account_form = UserAccountForm(instance=request.user)
+            password_form = StyledPasswordChangeForm(user=request.user)
+            profile_form = CompanyProfileForm(instance=profile)
+            gmail_form = GmailServiceConfigurationForm(request.POST, instance=gmail_settings)
+            gmail_test_form = GmailTestEmailForm()
+
+            if gmail_form.is_valid():
+                gmail_settings = gmail_form.save(commit=False)
+                if not gmail_settings.client_id or not gmail_settings.client_secret:
+                    gmail_settings.is_enabled = False
+                gmail_settings.save()
+                messages.success(request, "Configuración de Gmail actualizada.")
+                return redirect("accounts:profile")
+        elif request.POST.get("action") == "send-gmail-test" and gmail_configuration:
+            account_form = UserAccountForm(instance=request.user)
+            password_form = StyledPasswordChangeForm(user=request.user)
+            profile_form = CompanyProfileForm(instance=profile)
+            gmail_form = GmailServiceConfigurationForm(instance=gmail_settings) if request.user.is_superuser and gmail_settings else None
+            gmail_test_form = GmailTestEmailForm(request.POST)
+
+            if gmail_test_form.is_valid():
+                recipient = gmail_test_form.cleaned_data["recipient"]
+                try:
+                    send_test_email(
+                        gmail_effective,
+                        recipient=recipient,
+                        subject="Prueba de Gmail desde CoreQuote",
+                        body="Esta es una prueba del servicio de envio configurado en CoreQuote.",
+                    )
+                except Exception as exc:
+                    gmail_configuration.last_error = str(exc)
+                    gmail_configuration.save(update_fields=["last_error", "updated_at"])
+                    messages.error(request, f"No se pudo enviar el correo de prueba: {exc}")
+                else:
+                    gmail_configuration.last_test_email = recipient
+                    gmail_configuration.last_tested_at = timezone.now()
+                    gmail_configuration.last_error = ""
+                    gmail_configuration.save(
+                        update_fields=[
+                            "last_test_email",
+                            "last_tested_at",
+                            "last_error",
+                            "updated_at",
+                        ]
+                    )
+                    messages.success(request, f"Correo de prueba enviado a {recipient}.")
+                    return redirect("accounts:profile")
         else:
             account_form = UserAccountForm(instance=request.user)
             password_form = StyledPasswordChangeForm(user=request.user)
             profile_form = CompanyProfileForm(request.POST, request.FILES, instance=profile)
+            gmail_form = GmailServiceConfigurationForm(instance=gmail_settings) if request.user.is_superuser and gmail_settings else None
+            gmail_test_form = GmailTestEmailForm()
 
             if profile_form.is_valid():
                 profile_form.save()
@@ -110,6 +180,22 @@ def profile(request):
         account_form = UserAccountForm(instance=request.user)
         password_form = StyledPasswordChangeForm(user=request.user)
         profile_form = CompanyProfileForm(instance=profile)
+        gmail_form = GmailServiceConfigurationForm(instance=gmail_settings) if request.user.is_superuser and gmail_settings else None
+        gmail_test_form = GmailTestEmailForm()
+
+    invite_path = reverse("invite")
+    invite_url = (
+        f"{settings.APP_BASE_URL.rstrip('/')}{invite_path}"
+        if settings.APP_BASE_URL
+        else request.build_absolute_uri(invite_path)
+    )
+    whatsapp_invite_url = (
+        "https://wa.me/?text="
+        + quote(
+            "Te comparto CoreQuote para gestionar clientes, inventario y cotizaciones con una imagen más profesional: "
+            + invite_url
+        )
+    )
 
     return render(
         request,

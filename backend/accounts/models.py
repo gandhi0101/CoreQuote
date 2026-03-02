@@ -67,3 +67,36 @@ class CompanyProfile(models.Model):
 
     def __str__(self):
         return self.legal_name or f"Perfil de {self.user.get_username()}"
+
+
+class GmailServiceConfiguration(models.Model):
+    """Global OAuth settings plus per-user Gmail connections."""
+
+    name = models.CharField(max_length=120, default="Gmail principal", unique=True)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="gmail_service_configuration",
+        null=True,
+        blank=True,
+    )
+    client_id = models.CharField("Client ID", max_length=255, blank=True)
+    client_secret = models.CharField("Client secret", max_length=255, blank=True)
+    refresh_token = models.TextField(blank=True)
+    access_token = models.TextField(blank=True)
+    connected_email = models.EmailField(blank=True)
+    token_uri = models.URLField(default="https://oauth2.googleapis.com/token")
+    scopes = models.JSONField(default=list, blank=True)
+    is_enabled = models.BooleanField(default=False)
+    connected_at = models.DateTimeField(null=True, blank=True)
+    last_test_email = models.EmailField(blank=True)
+    last_tested_at = models.DateTimeField(null=True, blank=True)
+    last_error = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Configuración de Gmail"
+        verbose_name_plural = "Configuraciones de Gmail"
+
+    def __str__(self) -> str:
+        return self.name

@@ -5,7 +5,9 @@ from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 
-from .forms import ClientForm
+from accounts.gmail import send_email_message
+from accounts.views import get_effective_gmail_configuration
+from .forms import ClientEmailForm, ClientForm
 from .models import Client
 
 
@@ -21,6 +23,39 @@ def _render_client_form(request, form, client=None):
     )
 
 
+def _get_gmail_configuration(user):
+    _, _, configuration = get_effective_gmail_configuration(user)
+    if not configuration:
+        return None
+    if not configuration.is_enabled:
+        return None
+    if not configuration.client_id or not configuration.client_secret:
+        return None
+    if not (configuration.refresh_token or configuration.access_token) or not configuration.connected_email:
+        return None
+    return configuration
+
+
+def _render_client_row(request, client):
+    return render_to_string(
+        "clients/partials/client_row.html",
+        {"client": client, "gmail_ready": bool(_get_gmail_configuration(request.user))},
+        request=request,
+    )
+
+
+def _render_client_email_form(request, client, form):
+    return render(
+        request,
+        "clients/partials/client_email_form.html",
+        {
+            "client": client,
+            "form": form,
+            "gmail_ready": bool(_get_gmail_configuration(request.user)),
+        },
+    )
+
+
 @login_required
 def client_list(request):
     return render(
@@ -29,6 +64,7 @@ def client_list(request):
         {
             "clients": Client.objects.filter(owner=request.user).order_by("-created_at"),
             "form": ClientForm(),
+            "gmail_ready": bool(_get_gmail_configuration(request.user)),
         },
     )
 
@@ -66,7 +102,7 @@ def client_create(request):
     )
     row_html = render_to_string(
         "clients/partials/client_row.html",
-        {"client": client},
+        {"client": client, "gmail_ready": bool(_get_gmail_configuration(request.user))},
         request=request,
     )
     response = HttpResponse(form_html)
@@ -119,7 +155,7 @@ def client_update(request, pk):
     )
     row_html = render_to_string(
         "clients/partials/client_row.html",
-        {"client": client},
+        {"client": client, "gmail_ready": bool(_get_gmail_configuration(request.user))},
         request=request,
     )
     response = HttpResponse(form_html)
@@ -139,7 +175,105 @@ def client_update(request, pk):
 @login_required
 def client_row(request, pk):
     client = get_object_or_404(Client.objects.filter(owner=request.user), pk=pk)
-    return render(request, "clients/partials/client_row.html", {"client": client})
+    return render(
+        request,
+        "clients/partials/client_row.html",
+        {"client": client, "gmail_ready": bool(_get_gmail_configuration(request.user))},
+    )
+
+
+@login_required
+def client_email(request, pk):
+    client = get_object_or_404(Client.objects.filter(owner=request.user), pk=pk)
+
+    if not client.email:
+        if not _is_htmx(request):
+            messages.error(request, "Este cliente no tiene correo registrado.")
+            return redirect("clients:list")
+        response = HttpResponse(status=400)
+        response["HX-Trigger"] = json.dumps(
+            {"toast": {"message": "Este cliente no tiene correo registrado.", "type": "error"}}
+        )
+        return response
+
+    if request.method == "GET":
+        if not _is_htmx(request):
+            return redirect("clients:list")
+        form = ClientEmailForm(
+            initial={
+                "subject": f"Hola {client.name},",
+                "message": (
+                    f"Hola {client.name},\n\n"
+                    "Te escribo desde CoreQuote para dar seguimiento a nuestra conversación.\n\n"
+                    "Quedo atento."
+                ),
+            }
+        )
+        return _render_client_email_form(request, client, form)
+
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["GET", "POST"])
+
+    configuration = _get_gmail_configuration(request.user)
+    if not configuration:
+        message = "Configura y conecta Gmail desde Mis datos antes de enviar correos."
+        if not _is_htmx(request):
+            messages.error(request, message)
+            return redirect("clients:list")
+        response = HttpResponse(status=400)
+        response["HX-Trigger"] = json.dumps({"toast": {"message": message, "type": "error"}})
+        return response
+
+    form = ClientEmailForm(request.POST)
+    if not form.is_valid():
+        if not _is_htmx(request):
+            return render(
+                request,
+                "clients/list.html",
+                {
+                    "clients": Client.objects.filter(owner=request.user).order_by("-created_at"),
+                    "form": ClientForm(),
+                    "gmail_ready": bool(_get_gmail_configuration(request.user)),
+                },
+            )
+        return _render_client_email_form(request, client, form)
+
+    try:
+        send_email_message(
+            configuration,
+            recipient=client.email,
+            subject=form.cleaned_data["subject"],
+            body=form.cleaned_data["message"],
+        )
+    except Exception as exc:
+        configuration.last_error = str(exc)
+        configuration.save(update_fields=["last_error", "updated_at"])
+        if not _is_htmx(request):
+            messages.error(request, f"No se pudo enviar el correo: {exc}")
+            return redirect("clients:list")
+        response = HttpResponse(status=400)
+        response["HX-Trigger"] = json.dumps(
+            {"toast": {"message": f"No se pudo enviar el correo: {exc}", "type": "error"}}
+        )
+        return response
+
+    if not _is_htmx(request):
+        messages.success(request, f"Correo enviado a {client.email}.")
+        return redirect("clients:list")
+
+    response = HttpResponse("")
+    response["HX-Trigger"] = json.dumps(
+        {
+            "toast": {"message": f"Correo enviado a {client.email}.", "type": "success"},
+            "modal": {"action": "close", "target": "#client-email-modal"},
+            "listChanged": {
+                "action": "replace",
+                "selector": f"#client-{client.pk}",
+                "html": _render_client_row(request, client),
+            },
+        }
+    )
+    return response
 
 
 @login_required
